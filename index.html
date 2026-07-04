@@ -255,12 +255,22 @@
             gap: 8px;
         }
 
+        /* Ocultar flechas en inputs de número */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
         .score-input {
             width: 80px !important;
             text-align: center;
             padding: 10px !important;
-            cursor: pointer;
-            caret-color: transparent;
+            cursor: text;
+            caret-color: auto;
             font-weight: 800;
             font-size: 18px !important;
             border: 2px solid var(--bg-input) !important;
@@ -274,11 +284,6 @@
         .score-input:focus {
             border-color: var(--primary) !important;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-        }
-
-        body.pc-mode .score-input {
-            cursor: text;
-            caret-color: auto;
         }
 
         .btn-corte {
@@ -387,6 +392,16 @@
             min-width: 90px;
             box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.3);
             border-right: 1px solid var(--bg-input);
+        }
+
+        .history-cell-editable {
+            cursor: pointer;
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.02);
+            transition: background-color 0.2s;
+        }
+        .history-cell-editable:hover {
+            background-color: rgba(99, 102, 241, 0.15);
         }
 
         /* Podio */
@@ -847,6 +862,18 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modal-edit-score">
+        <div class="modal-card">
+            <h3 id="edit-score-title">Editar Puntaje</h3>
+            <p id="edit-score-message">Ingresa el nuevo puntaje para el jugador:</p>
+            <input type="number" id="edit-score-input" class="score-input" min="0" placeholder="0" style="margin: 16px auto; display: block; width: 120px !important;" inputmode="numeric" pattern="[0-9]*">
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btn-edit-score-cancel">Cancelar</button>
+                <button class="btn-success" id="btn-edit-score-save">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Rondas del Carioca Chileno
         const ROUNDS = [
@@ -856,10 +883,70 @@
             "9 - Tres Tríos",
             "10 - Dos Tríos y Una Escala",
             "11 - Un Trío y Dos Escalas",
-            "12 - Tres Tríos",
+            "12 - Tres Escalas",
             "13 - Escala Loca",
             "13 - Escala Real"
         ];
+
+        // Mensajes graciosos para el podio
+        const WINNER_MESSAGES = [
+            "¡EL REY/REINA DE LA MESA! 🎉",
+            "¡Le rezó a todos los santos y funcionó! 🛐",
+            "¿Será suerte o hizo trampa? Sospechoso... 🧐",
+            "Ya se cree profesional. Próxima parada: Las Vegas 💸",
+            "El mismísimo terror del Carioca 🦖",
+            "Pura estrategia y cero piedad 💀",
+            "¡Alguien que le quite la corona que se le va a subir a la cabeza! 👑",
+            "¡El Dios de las escalas y los tríos! 🙌",
+            "¡Suertudo/a nivel supremo! 🍀",
+            "¡Que nos invite el asado/cerveza con su victoria! 🥩🍻"
+        ];
+
+        const LOSER_MESSAGES = [
+            "<span class=\"loser-text\">🤮 ¡El Seco! Le toca lavar las cartas / pagar las cervezas 🍻</span>",
+            "<span class=\"loser-text\">🤡 El bufón oficial de la partida. ¡Gracias por las risas! 🎪</span>",
+            "<span class=\"loser-text\">👀 ¿Jugaste con los ojos cerrados o qué? 🙈</span>",
+            "<span class=\"loser-text\">🏳️ Fiel representante de: 'lo importante es participar' 🤡</span>",
+            "<span class=\"loser-text\">🐈 ¡Tiene menos suerte que un gato negro! 🐈‍⬛</span>",
+            "<span class=\"loser-text\">📉 Aseguró el último puesto desde la primera ronda 📉</span>",
+            "<span class=\"loser-text\">😂 Una actuación digna de olvidar... o recordar para siempre 😂</span>",
+            "<span class=\"loser-text\">🃏 ¡Le cayó toda la mala suerte del mazo! 🃏💨</span>",
+            "<span class=\"loser-text\">📖 Por favor, que alguien le enseñe las reglas de nuevo 📖</span>",
+            "<span class=\"loser-text\">🐢 Su estrategia fue simplemente no tener estrategia 🐢</span>"
+        ];
+
+        const SECOND_PLACE_MESSAGES = [
+            "Buen intento, casi logras la gloria 🥈",
+            "El eterno segundón. El subcampeón de la noche 🥈",
+            "Estuviste tan cerca que duele... 💔",
+            "Casi, casi... pero el segundo lugar no tiene corona 👑❌",
+            "¡A nada de la gloria! Quedaste a las puertas del cielo 🚪",
+            "La plata no brilla tanto como el oro 🥈✨",
+            "El primer perdedor, según los optimistas 😂"
+        ];
+
+        const THIRD_PLACE_MESSAGES = [
+            "Salvaste el honor en el podio 🥉",
+            "El bronce es mejor que el barro 🥉",
+            "Por lo menos no te tocó lavar las cartas 🧼",
+            "Entraste al podio pidiendo la hora ⏰",
+            "El último vagón del tren de la victoria 🚂",
+            "Medalla de bronce, al menos sales en la foto 📸"
+        ];
+
+        const NORMAL_PLACE_MESSAGES = [
+            "Terminó a mitad de tabla. Ni fu ni fa 🪵",
+            "Perfectamente equilibrado, como todo debe estar ⚖️",
+            "Invisible durante todo el juego 👻",
+            "Un digno espectador en primera fila 👀",
+            "Ni muy muy, ni tan tan. Promedio total 🪵",
+            "El relleno perfecto para esta partida 🪵",
+            "Nadie recordará esta posición en 5 minutos 💨"
+        ];
+
+        function getRandomMessage(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
 
         let players = [];
         let currentRoundIndex = 0;
@@ -882,6 +969,7 @@
         const modalAlert = document.getElementById('modal-alert');
         const modalConfirm = document.getElementById('modal-confirm');
         const modalResume = document.getElementById('modal-resume');
+        const modalEditScore = document.getElementById('modal-edit-score');
 
         // Escuchar Enter en el input de jugadores
         playerInput.addEventListener('keypress', function (e) {
@@ -960,6 +1048,42 @@
                     modalConfirm.classList.remove('open');
                     vibrate(10);
                     resolve(false);
+                };
+            });
+        }
+
+        function showEditScorePrompt(title, message, currentValue) {
+            return new Promise((resolve) => {
+                vibrate(15);
+                document.getElementById('edit-score-title').innerText = title;
+                document.getElementById('edit-score-message').innerText = message;
+                
+                const input = document.getElementById('edit-score-input');
+                input.value = currentValue;
+                
+                modalEditScore.classList.add('open');
+                
+                // Enfocar automáticamente el input y seleccionar el texto
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 100);
+
+                document.getElementById('btn-edit-score-save').onclick = function () {
+                    const val = parseInt(input.value, 10);
+                    if (isNaN(val) || val < 0) {
+                        showAlert('Error de Puntaje', 'Por favor ingresa un número válido mayor o igual a 0.');
+                        return;
+                    }
+                    modalEditScore.classList.remove('open');
+                    vibrate(25);
+                    resolve(val);
+                };
+
+                document.getElementById('btn-edit-score-cancel').onclick = function () {
+                    modalEditScore.classList.remove('open');
+                    vibrate(10);
+                    resolve(null);
                 };
             });
         }
@@ -1074,18 +1198,12 @@
             document.getElementById('round-index-display').innerText = `Ronda ${currentRoundIndex + 1} de ${ROUNDS.length}`;
             document.getElementById('round-name-display').innerText = ROUNDS[currentRoundIndex];
 
-            const isMobile = isMobileDevice();
             scoringContainer.innerHTML = '';
             players.forEach((player, idx) => {
                 const row = document.createElement('div');
                 row.className = 'scoring-row';
                 
-                let inputHtml = '';
-                if (isMobile) {
-                    inputHtml = `<input type="text" id="score-${idx}" class="score-input" placeholder="-" readonly onclick="openKeypad(${idx})">`;
-                } else {
-                    inputHtml = `<input type="number" id="score-${idx}" class="score-input" placeholder="-" min="0" oninput="onPcScoreInput(${idx}, this)">`;
-                }
+                const inputHtml = `<input type="number" id="score-${idx}" class="score-input" placeholder="-" min="0" inputmode="numeric" pattern="[0-9]*" oninput="onScoreInput(${idx}, this)">`;
 
                 row.innerHTML = `
                     <div class="player-info">
@@ -1198,7 +1316,6 @@
         }
 
         function setCorteState(winnerIdx) {
-            const isMobile = isMobileDevice();
             players.forEach((_, idx) => {
                 const btn = document.getElementById(`corte-${idx}`);
                 const input = document.getElementById(`score-${idx}`);
@@ -1207,7 +1324,7 @@
                 } else {
                     if (btn) btn.classList.remove('active');
                     if (input && input.value === "0") {
-                        input.value = isMobile ? "-" : "";
+                        input.value = "";
                     }
                 }
             });
@@ -1215,7 +1332,6 @@
 
         function setCorte(winnerIdx) {
             vibrate(15);
-            const isMobile = isMobileDevice();
             players.forEach((_, idx) => {
                 const input = document.getElementById(`score-${idx}`);
                 const btn = document.getElementById(`corte-${idx}`);
@@ -1224,14 +1340,14 @@
                     btn.classList.add('active');
                 } else {
                     btn.classList.remove('active');
-                    if (input.value == '0') input.value = isMobile ? '-' : '';
+                    if (input.value == '0') input.value = '';
                 }
             });
         }
 
         async function nextRound() {
             let values = [];
-            let hasZero = false;
+            let zeroCount = 0;
 
             for (let idx = 0; idx < players.length; idx++) {
                 const valStr = document.getElementById(`score-${idx}`).value;
@@ -1244,12 +1360,18 @@
                     await showAlert('Error de Puntaje', 'Los puntajes deben ser números válidos mayores o iguales a 0.');
                     return;
                 }
-                if (val === 0) hasZero = true;
+                if (val === 0) zeroCount++;
                 values.push({ idx, val });
             }
 
+            // Validar que no haya más de un 0 (más de un ganador que corte)
+            if (zeroCount > 1) {
+                await showAlert('Error de Puntaje', 'Solo puede haber un ganador con 0 puntos (quien cortó) por ronda.');
+                return;
+            }
+
             // Alerta si nadie tiene 0
-            if (!hasZero) {
+            if (zeroCount === 0) {
                 const confirmSave = await showConfirm(
                     '¿Guardar Ronda?',
                     'En el Carioca generalmente alguien debe cortar (0 puntos). ¿Deseas guardar de todas formas?'
@@ -1319,16 +1441,54 @@
             }
             html += '</tr></thead><tbody>';
 
-            players.forEach(player => {
-                html += `<tr><td>${player.name}</td>`;
+            players.forEach((player, playerIdx) => {
+                html += `<tr><td style="font-weight: bold; background-color: rgba(15, 23, 42, 0.2);">${player.name}</td>`;
                 for (let i = 0; i < ROUNDS.length; i++) {
                     const score = player.scores[i] !== undefined ? player.scores[i] : '-';
-                    html += `<td>${score}</td>`;
+                    if (player.scores[i] !== undefined) {
+                        html += `<td class="history-cell-editable" onclick="editSavedScore(${playerIdx}, ${i})">${score} <span style="font-size:10px; opacity:0.6;">✏️</span></td>`;
+                    } else {
+                        html += `<td>${score}</td>`;
+                    }
                 }
                 html += '</tr>';
             });
             html += '</tbody>';
             historyTable.innerHTML = html;
+        }
+
+        async function editSavedScore(playerIdx, roundIdx) {
+            const currentScore = players[playerIdx].scores[roundIdx];
+            const newScore = await showEditScorePrompt(
+                'Editar Puntaje',
+                `Modificar puntos de ${players[playerIdx].name} en Ronda ${roundIdx + 1} (${ROUNDS[roundIdx]})`,
+                currentScore
+            );
+
+            if (newScore !== null) {
+                const originalScore = players[playerIdx].scores[roundIdx];
+                players[playerIdx].scores[roundIdx] = newScore;
+
+                // Validar que no haya más de un 0 (ganador que corte) en esta ronda editada
+                let zeroCount = 0;
+                players.forEach(p => {
+                    if (p.scores[roundIdx] === 0) zeroCount++;
+                });
+
+                if (zeroCount > 1) {
+                    players[playerIdx].scores[roundIdx] = originalScore;
+                    await showAlert('Error de Puntaje', 'Solo puede haber un ganador con 0 puntos (quien cortó) por ronda.');
+                    return;
+                }
+
+                // Recalcular total
+                players[playerIdx].total = players[playerIdx].scores.reduce((sum, s) => sum + s, 0);
+
+                // Guardar y re-renderizar
+                saveGameState();
+                renderLeaderboard();
+                renderHistoryTable();
+            }
         }
 
         async function confirmEndGame() {
@@ -1362,27 +1522,27 @@
                     placeClass = 'winner';
                     medal = '👑';
                     titleText = `🏆 1° Lugar - ¡${player.name}! 🏆`;
-                    subtitleText = '¡EL REY/REINA DE LA MESA! 🎉';
+                    subtitleText = getRandomMessage(WINNER_MESSAGES);
                 } else if (isLoser) {
                     placeClass = 'loser';
                     medal = '🤡';
                     titleText = `🤡 Último Lugar - ${player.name}`;
-                    subtitleText = '<span class="loser-text">🤮 ¡El Seco! Le toca lavar las cartas / pagar las cervezas 🍻</span>';
+                    subtitleText = getRandomMessage(LOSER_MESSAGES);
                 } else if (index === 1) {
                     placeClass = 'second';
                     medal = '🥈';
                     titleText = `🥈 2° Lugar - ${player.name}`;
-                    subtitleText = 'Buen intento, casi logras la gloria';
+                    subtitleText = getRandomMessage(SECOND_PLACE_MESSAGES);
                 } else if (index === 2) {
                     placeClass = 'third';
                     medal = '🥉';
                     titleText = `🥉 3° Lugar - ${player.name}`;
-                    subtitleText = 'Salvaste el honor en el podio';
+                    subtitleText = getRandomMessage(THIRD_PLACE_MESSAGES);
                 } else {
                     placeClass = 'normal';
                     medal = '🪵';
                     titleText = `${index + 1}° Lugar - ${player.name}`;
-                    subtitleText = 'Terminó a mitad de tabla';
+                    subtitleText = getRandomMessage(NORMAL_PLACE_MESSAGES);
                 }
 
                 const div = document.createElement('div');
@@ -1422,7 +1582,7 @@
                 || (navigator.maxTouchPoints > 0);
         }
 
-        function onPcScoreInput(idx, inputEl) {
+        function onScoreInput(idx, inputEl) {
             const valStr = inputEl.value;
             if (valStr === "0") {
                 setCorteState(idx);
