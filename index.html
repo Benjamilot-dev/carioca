@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <title>Anotador de Carioca Chileno</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --accent: #f59e0b;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at top, #1e293b, #0f172a);
+            color: var(--text-main);
+            padding: 16px;
+            padding-top: calc(16px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        header {
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        header h1 {
+            font-size: 26px;
+            color: var(--text-main);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #a5b4fc, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.2s ease;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Vistas */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Formulario de Registro */
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            background-color: var(--bg-input);
+            border: 2px solid transparent;
+            color: var(--text-main);
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s, background-color 0.2s;
+            user-select: text; /* Permitir seleccionar texto aquí */
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            background-color: rgba(51, 65, 85, 0.8);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s ease, filter 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 48px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        button.btn-secondary {
+            background: transparent;
+            border: 2px solid var(--bg-input);
+            color: var(--text-main);
+        }
+
+        button.btn-secondary:active {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        button.btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        button.btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        .player-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .player-tag {
+            background-color: var(--bg-input);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.2s ease-out;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .player-tag span {
+            color: var(--danger);
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 4px;
+            font-size: 16px;
+        }
+
+        /* Pantalla de Juego */
+        .round-banner {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            padding: 18px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .round-banner .round-number {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.8;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .round-banner .round-name {
+            font-size: 22px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .scoring-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .scoring-row:last-child {
+            border-bottom: none;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .player-total-badge {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .scoring-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score-input {
+            width: 80px !important;
+            text-align: center;
+            padding: 10px !important;
+            cursor: pointer;
+            caret-color: transparent;
+            font-weight: 800;
+            font-size: 18px !important;
+            border: 2px solid var(--bg-input) !important;
+            background-color: rgba(15, 23, 42, 0.4) !important;
+            color: var(--text-main);
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .score-input:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        body.pc-mode .score-input {
+            cursor: text;
+            caret-color: auto;
+        }
+
+        .btn-corte {
+            background-color: var(--bg-input);
+            color: var(--text-muted);
+            padding: 0 12px;
+            font-size: 13px;
+            min-height: 42px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: none;
+        }
+
+        .btn-corte.active {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Tabla de Posiciones */
+        .table-pos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        .table-pos th,
+        .table-pos td {
+            text-align: left;
+            padding: 12px 8px;
+            font-size: 14px;
+        }
+
+        .table-pos th {
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--bg-input);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .table-pos tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .table-pos tr:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-weight: bold;
+            width: 40px;
+        }
+
+        .rank-1 {
+            color: var(--accent);
+            text-shadow: 0 0 4px rgba(245, 158, 11, 0.3);
+        }
+
+        .rank-2 {
+            color: #cbd5e1;
+        }
+
+        .rank-3 {
+            color: #b45309;
+        }
+
+        /* Historial Extendido */
+        .history-wrapper {
+            overflow-x: auto;
+            margin-top: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .table-history {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .table-history th,
+        .table-history td {
+            padding: 10px 8px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-width: 52px;
+        }
+
+        .table-history th {
+            background-color: rgba(15, 23, 42, 0.3);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .table-history th:first-child,
+        .table-history td:first-child {
+            text-align: left;
+            font-weight: 700;
+            position: sticky;
+            left: 0;
+            background-color: var(--bg-card);
+            min-width: 90px;
+            box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.3);
+            border-right: 1px solid var(--bg-input);
+        }
+
+        /* Podio */
+        .podium-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0;
+        }
+
+        .podium-place {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            background-color: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        @keyframes winnerPulse {
+            0% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), var(--shadow-lg); }
+            50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.85), var(--shadow-lg); }
+            100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), var(--shadow-lg); }
+        }
+        @keyframes winnerBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .podium-place.winner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.05)) !important;
+            border: 2px solid var(--accent) !important;
+            animation: winnerPulse 2s infinite ease-in-out, winnerBounce 2.5s infinite ease-in-out;
+        }
+        .podium-place.winner .crown {
+            font-size: 40px !important;
+            animation: winnerBounce 2.5s infinite ease-in-out;
+        }
+
+        .podium-place.second {
+            background: linear-gradient(135deg, rgba(203, 213, 225, 0.15), rgba(203, 213, 225, 0.03)) !important;
+            border: 1px solid #cbd5e1 !important;
+            opacity: 0.95;
+        }
+
+        .podium-place.third {
+            background: linear-gradient(135deg, rgba(180, 83, 9, 0.15), rgba(180, 83, 9, 0.02)) !important;
+            border: 1px solid #b45309 !important;
+            opacity: 0.9;
+        }
+
+        .podium-place.normal {
+            background-color: rgba(15, 23, 42, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.03) !important;
+            opacity: 0.75;
+        }
+
+        @keyframes loserShake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-1deg); }
+            75% { transform: rotate(1deg); }
+        }
+        .podium-place.loser {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.03)) !important;
+            border: 2px dashed var(--danger) !important;
+            animation: loserShake 0.45s infinite ease-in-out;
+        }
+        .podium-place.loser .crown {
+            font-size: 36px !important;
+            filter: grayscale(0.2) contrast(1.2);
+        }
+
+        .loser-text {
+            color: #f87171 !important;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .crown {
+            font-size: 32px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .nav-buttons button {
+            flex: 1;
+        }
+
+        /* Teclado Rápido (Bottom Sheet) */
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-card);
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: none;
+            z-index: 1000;
+            padding: 20px;
+            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+
+        .bottom-sheet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .bottom-sheet-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .keypad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+        }
+
+        .keypad-player-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .keypad-score-display {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--accent);
+            background-color: var(--bg-main);
+            padding: 4px 16px;
+            border-radius: 12px;
+            min-width: 90px;
+            text-align: right;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            text-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+        }
+
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .key-btn {
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: none;
+            border-radius: 14px;
+            padding: 14px 0;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.1s, transform 0.1s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .key-btn:active {
+            background-color: #475569;
+            transform: scale(0.94);
+        }
+
+        .key-btn.action-btn {
+            background-color: #475569;
+            font-size: 16px;
+        }
+
+        .key-btn.quick-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            font-size: 15px;
+        }
+
+        .key-btn.quick-btn:active {
+            filter: brightness(1.1);
+        }
+
+        .key-btn.danger-btn {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            font-size: 18px;
+        }
+
+        .keypad-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .keypad-footer button {
+            flex: 1;
+        }
+
+        /* Diálogos Modales Personalizados */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+        }
+
+        .modal-overlay.open .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            font-weight: 800;
+        }
+
+        .modal-card p {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            user-select: text; /* Permitir lectura */
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        /* Animación FadeIn */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Carioca Score</h1>
+            <p>Anotador Oficial de Mesa</p>
+        </header>
+
+        <!-- VISTA CONFIGURACIÓN -->
+        <div id="view-setup" class="view active">
+            <div class="card">
+                <h2>Registrar Jugadores</h2>
+                <div class="input-group">
+                    <input type="text" id="player-input" placeholder="Nombre del jugador" autocomplete="off" inputmode="text">
+                    <button onclick="addPlayer()">Agregar</button>
+                </div>
+                <div class="player-tag-list" id="player-tags">
+                </div>
+            </div>
+            <button class="btn-success" style="width: 100%;" onclick="startGame()">Empezar Partida</button>
+        </div>
+
+        <!-- VISTA DE JUEGO -->
+        <div id="view-game" class="view">
+            <div class="round-banner">
+                <div class="round-number" id="round-index-display">Ronda 1 de 9</div>
+                <div class="round-name" id="round-name-display">6 - Tres Tríos</div>
+            </div>
+
+            <div class="card">
+                <h2>Puntajes de la Ronda</h2>
+                <div id="scoring-container">
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn-secondary" onclick="undoRound()" id="btn-undo" disabled>Deshacer</button>
+                <button class="btn-success" onclick="nextRound()">Guardar Ronda</button>
+            </div>
+
+            <div class="card">
+                <h2>Tabla de Posiciones</h2>
+                <table class="table-pos">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">Pos</th>
+                            <th>Jugador</th>
+                            <th style="text-align: right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Historial por Rondas</h2>
+                <div class="history-wrapper">
+                    <table class="table-history" id="history-table">
+                    </table>
+                </div>
+            </div>
+
+            <button class="btn-danger" style="margin-top: 8px;" onclick="confirmEndGame()">Finalizar Juego Manualmente</button>
+        </div>
+
+        <!-- VISTA PODIO -->
+        <div id="view-podium" class="view">
+            <div class="card" style="text-align: center;">
+                <h2>🏆 ¡Fin de la Partida! 🏆</h2>
+                <div class="podium-box" id="podium-container">
+                </div>
+                <button class="btn-success" style="width: 100%; margin-top: 16px;" onclick="resetGame()">Jugar de Nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TECLADO RÁPIDO (BOTTOM SHEET) -->
+    <div class="bottom-sheet-overlay" id="keypad-overlay" onclick="closeKeypad()"></div>
+    <div class="bottom-sheet" id="keypad-sheet">
+        <div class="keypad-header">
+            <div class="keypad-player-name" id="keypad-title">Puntaje de Jugador</div>
+            <div class="keypad-score-display" id="keypad-display">-</div>
+        </div>
+        <div class="keypad-grid">
+            <!-- Numpad y Atajos -->
+            <button class="key-btn" onclick="pressNum(1)">1</button>
+            <button class="key-btn" onclick="pressNum(2)">2</button>
+            <button class="key-btn" onclick="pressNum(3)">3</button>
+            <button class="key-btn quick-btn" onclick="addValue(50)">+50 🃏</button>
+
+            <button class="key-btn" onclick="pressNum(4)">4</button>
+            <button class="key-btn" onclick="pressNum(5)">5</button>
+            <button class="key-btn" onclick="pressNum(6)">6</button>
+            <button class="key-btn quick-btn" onclick="addValue(20)">+20 🂱</button>
+
+            <button class="key-btn" onclick="pressNum(7)">7</button>
+            <button class="key-btn" onclick="pressNum(8)">8</button>
+            <button class="key-btn" onclick="pressNum(9)">9</button>
+            <button class="key-btn quick-btn" onclick="addValue(10)">+10 🂮</button>
+
+            <button class="key-btn danger-btn" onclick="clearKeypad()">C</button>
+            <button class="key-btn" onclick="pressNum(0)">0</button>
+            <button class="key-btn action-btn" onclick="addValue(5)">+5</button>
+            <button class="key-btn action-btn" onclick="addValue(1)">+1</button>
+        </div>
+        <div class="keypad-footer">
+            <button class="btn-secondary" style="min-height: 50px;" onclick="closeKeypad()">Cerrar</button>
+            <button class="btn-success" id="keypad-accept-btn" style="min-height: 50px; flex: 2;" onclick="acceptKeypad()">Listo ✓</button>
+        </div>
+    </div>
+
+    <!-- DIÁLOGOS MODALES PERSONALIZADOS -->
+    <div class="modal-overlay" id="modal-alert">
+        <div class="modal-card">
+            <h3 id="alert-title">Atención</h3>
+            <p id="alert-message">Mensaje informativo.</p>
+            <div class="modal-actions">
+                <button class="btn-success" id="btn-alert-ok">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-confirm">
+        <div class="modal-card">
+            <h3 id="confirm-title">¿Confirmar Acción?</h3>
+            <p id="confirm-message">¿Estás seguro de que deseas realizar esta acción?</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btn-confirm-no">Cancelar</button>
+                <button class="btn-danger" id="btn-confirm-yes">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-resume">
+        <div class="modal-card">
+            <h3>Juego Guardado</h3>
+            <p>Se ha encontrado una partida en progreso. ¿Deseas reanudarla o iniciar una nueva?</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btn-resume-new">Nueva Partida</button>
+                <button class="btn-success" id="btn-resume-load">Reanudar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Rondas del Carioca Chileno
+        const ROUNDS = [
+            "6 - Tres Tríos",
+            "7 - Un Trío y Una Escala",
+            "8 - Dos Escalas",
+            "9 - Tres Tríos",
+            "10 - Dos Tríos y Una Escala",
+            "11 - Un Trío y Dos Escalas",
+            "12 - Tres Tríos",
+            "13 - Escala Loca",
+            "13 - Escala Real"
+        ];
+
+        let players = [];
+        let currentRoundIndex = 0;
+        let roundHistory = [];
+        let wakeLock = null;
+
+        // Variables de control del Teclado Rápido
+        let activePlayerIndex = null;
+        let tempScoreString = "";
+
+        // Elementos DOM
+        const playerInput = document.getElementById('player-input');
+        const playerTagsContainer = document.getElementById('player-tags');
+        const scoringContainer = document.getElementById('scoring-container');
+        const leaderboardBody = document.getElementById('leaderboard-body');
+        const historyTable = document.getElementById('history-table');
+        const podiumContainer = document.getElementById('podium-container');
+
+        // Modales
+        const modalAlert = document.getElementById('modal-alert');
+        const modalConfirm = document.getElementById('modal-confirm');
+        const modalResume = document.getElementById('modal-resume');
+
+        // Escuchar Enter en el input de jugadores
+        playerInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') addPlayer();
+        });
+
+        // Haptic Feedback
+        function vibrate(pattern) {
+            if ('vibrate' in navigator) {
+                try {
+                    navigator.vibrate(pattern);
+                } catch (e) {
+                    console.log('Vibración bloqueada o no soportada');
+                }
+            }
+        }
+
+        // Screen Wake Lock API
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock Activo: la pantalla no se apagará');
+                }
+            } catch (err) {
+                console.warn(`No se pudo activar el Wake Lock: ${err.message}`);
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => {
+                    wakeLock = null;
+                    console.log('Wake Lock liberado');
+                });
+            }
+        }
+
+        // Re-adquirir wake lock si la app vuelve a estar visible
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        // Diálogos Modales Personalizados Asíncronos
+        function showAlert(title, message) {
+            return new Promise((resolve) => {
+                vibrate(15);
+                document.getElementById('alert-title').innerText = title;
+                document.getElementById('alert-message').innerText = message;
+                modalAlert.classList.add('open');
+
+                document.getElementById('btn-alert-ok').onclick = function () {
+                    modalAlert.classList.remove('open');
+                    vibrate(10);
+                    resolve();
+                };
+            });
+        }
+
+        function showConfirm(title, message) {
+            return new Promise((resolve) => {
+                vibrate(15);
+                document.getElementById('confirm-title').innerText = title;
+                document.getElementById('confirm-message').innerText = message;
+                modalConfirm.classList.add('open');
+
+                document.getElementById('btn-confirm-yes').onclick = function () {
+                    modalConfirm.classList.remove('open');
+                    vibrate(25);
+                    resolve(true);
+                };
+
+                document.getElementById('btn-confirm-no').onclick = function () {
+                    modalConfirm.classList.remove('open');
+                    vibrate(10);
+                    resolve(false);
+                };
+            });
+        }
+
+        function checkSavedGame() {
+            const saved = localStorage.getItem('carioca_game_state');
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (state && state.players && state.players.length >= 2) {
+                        showResumeModal(state);
+                    }
+                } catch (e) {
+                    console.error("Error al cargar partida guardada", e);
+                    localStorage.removeItem('carioca_game_state');
+                }
+            }
+        }
+
+        function showResumeModal(state) {
+            vibrate(20);
+            modalResume.classList.add('open');
+
+            document.getElementById('btn-resume-load').onclick = function () {
+                modalResume.classList.remove('open');
+                vibrate(20);
+                players = state.players;
+                currentRoundIndex = state.currentRoundIndex;
+                roundHistory = state.roundHistory || [];
+                document.getElementById('btn-undo').disabled = (roundHistory.length === 0);
+                
+                initRoundUI();
+                switchView('view-game');
+                requestWakeLock();
+            };
+
+            document.getElementById('btn-resume-new').onclick = function () {
+                modalResume.classList.remove('open');
+                vibrate(10);
+                clearGameState();
+                players = [];
+                renderPlayerTags();
+            };
+        }
+
+        // Persistencia local
+        function saveGameState() {
+            const state = {
+                players,
+                currentRoundIndex,
+                roundHistory
+            };
+            localStorage.setItem('carioca_game_state', JSON.stringify(state));
+        }
+
+        function clearGameState() {
+            localStorage.removeItem('carioca_game_state');
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function addPlayer() {
+            const name = playerInput.value.trim();
+            if (!name) return;
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                await showAlert('Jugador Duplicado', 'Este jugador ya existe.');
+                return;
+            }
+            players.push({ name: name, scores: [], total: 0 });
+            playerInput.value = '';
+            renderPlayerTags();
+            vibrate(12);
+        }
+
+        function removePlayer(index) {
+            vibrate(10);
+            players.splice(index, 1);
+            renderPlayerTags();
+        }
+
+        function renderPlayerTags() {
+            playerTagsContainer.innerHTML = '';
+            players.forEach((player, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'player-tag';
+                tag.innerHTML = `${player.name} <span onclick="removePlayer(${index})">&times;</span>`;
+                playerTagsContainer.appendChild(tag);
+            });
+        }
+
+        async function startGame() {
+            if (players.length < 2) {
+                await showAlert('Faltan Jugadores', 'Necesitas registrar al menos 2 jugadores para empezar.');
+                return;
+            }
+            currentRoundIndex = 0;
+            roundHistory = [];
+            players.forEach(p => { p.scores = []; p.total = 0; });
+
+            document.getElementById('btn-undo').disabled = true;
+            initRoundUI();
+            switchView('view-game');
+            await requestWakeLock();
+            saveGameState();
+        }
+
+        function initRoundUI() {
+            document.getElementById('round-index-display').innerText = `Ronda ${currentRoundIndex + 1} de ${ROUNDS.length}`;
+            document.getElementById('round-name-display').innerText = ROUNDS[currentRoundIndex];
+
+            const isMobile = isMobileDevice();
+            scoringContainer.innerHTML = '';
+            players.forEach((player, idx) => {
+                const row = document.createElement('div');
+                row.className = 'scoring-row';
+                
+                let inputHtml = '';
+                if (isMobile) {
+                    inputHtml = `<input type="text" id="score-${idx}" class="score-input" placeholder="-" readonly onclick="openKeypad(${idx})">`;
+                } else {
+                    inputHtml = `<input type="number" id="score-${idx}" class="score-input" placeholder="-" min="0" oninput="onPcScoreInput(${idx}, this)">`;
+                }
+
+                row.innerHTML = `
+                    <div class="player-info">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-total-badge">Lleva: ${player.total} pts</div>
+                    </div>
+                    <div class="scoring-actions">
+                        <button class="btn-corte" id="corte-${idx}" onclick="setCorte(${idx})">Cortó</button>
+                        ${inputHtml}
+                    </div>
+                `;
+                scoringContainer.appendChild(row);
+            });
+
+            renderLeaderboard();
+            renderHistoryTable();
+        }
+
+        // LÓGICA DEL TECLADO DE CARIOCA
+        function openKeypad(idx) {
+            vibrate(10);
+            activePlayerIndex = idx;
+            
+            // Ocultar scrolls molestos y deshabilitar interacción detrás
+            document.body.style.overflow = 'hidden';
+
+            const inputVal = document.getElementById(`score-${idx}`).value;
+            tempScoreString = inputVal === "-" ? "" : inputVal;
+
+            document.getElementById('keypad-title').innerText = `Puntaje: ${players[idx].name}`;
+            updateKeypadDisplay();
+
+            // Estilizar botón de aceptar dinámicamente
+            const acceptBtn = document.getElementById('keypad-accept-btn');
+            if (idx < players.length - 1) {
+                acceptBtn.innerText = "Siguiente ➔";
+                acceptBtn.className = "btn-success";
+            } else {
+                acceptBtn.innerText = "Listo ✓";
+                acceptBtn.className = "btn-success";
+            }
+
+            document.getElementById('keypad-sheet').classList.add('open');
+            document.getElementById('keypad-overlay').classList.add('open');
+        }
+
+        function closeKeypad() {
+            vibrate(8);
+            document.body.style.overflow = '';
+            document.getElementById('keypad-sheet').classList.remove('open');
+            document.getElementById('keypad-overlay').classList.remove('open');
+            activePlayerIndex = null;
+        }
+
+        function updateKeypadDisplay() {
+            const display = document.getElementById('keypad-display');
+            display.innerText = tempScoreString === "" ? "-" : tempScoreString;
+        }
+
+        function pressNum(num) {
+            vibrate(10);
+            if (tempScoreString === "0") {
+                if (num === 0) return;
+                tempScoreString = String(num);
+            } else {
+                if (tempScoreString.length < 3) {
+                    tempScoreString += num;
+                }
+            }
+            updateKeypadDisplay();
+        }
+
+        function addValue(val) {
+            vibrate(15);
+            let current = parseInt(tempScoreString, 10);
+            if (isNaN(current)) current = 0;
+            current += val;
+            if (current > 999) current = 999;
+            tempScoreString = String(current);
+            updateKeypadDisplay();
+        }
+
+        function clearKeypad() {
+            vibrate(10);
+            tempScoreString = "";
+            updateKeypadDisplay();
+        }
+
+        function acceptKeypad() {
+            if (activePlayerIndex === null) return;
+
+            const input = document.getElementById(`score-${activePlayerIndex}`);
+            input.value = tempScoreString === "" ? "-" : tempScoreString;
+
+            // Lógica de corte al ingresar 0 directamente en el teclado
+            if (tempScoreString === "0") {
+                setCorteState(activePlayerIndex);
+            } else {
+                const btn = document.getElementById(`corte-${activePlayerIndex}`);
+                if (btn) btn.classList.remove('active');
+            }
+
+            const currentIdx = activePlayerIndex;
+            if (currentIdx < players.length - 1) {
+                // Avanzar al siguiente jugador de forma automática
+                openKeypad(currentIdx + 1);
+            } else {
+                closeKeypad();
+            }
+        }
+
+        function setCorteState(winnerIdx) {
+            const isMobile = isMobileDevice();
+            players.forEach((_, idx) => {
+                const btn = document.getElementById(`corte-${idx}`);
+                const input = document.getElementById(`score-${idx}`);
+                if (idx === winnerIdx) {
+                    if (btn) btn.classList.add('active');
+                } else {
+                    if (btn) btn.classList.remove('active');
+                    if (input && input.value === "0") {
+                        input.value = isMobile ? "-" : "";
+                    }
+                }
+            });
+        }
+
+        function setCorte(winnerIdx) {
+            vibrate(15);
+            const isMobile = isMobileDevice();
+            players.forEach((_, idx) => {
+                const input = document.getElementById(`score-${idx}`);
+                const btn = document.getElementById(`corte-${idx}`);
+                if (idx === winnerIdx) {
+                    input.value = 0;
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                    if (input.value == '0') input.value = isMobile ? '-' : '';
+                }
+            });
+        }
+
+        async function nextRound() {
+            let values = [];
+            let hasZero = false;
+
+            for (let idx = 0; idx < players.length; idx++) {
+                const valStr = document.getElementById(`score-${idx}`).value;
+                if (valStr === '' || valStr === '-') {
+                    await showAlert('Puntaje Incompleto', `Por favor ingresa el puntaje para ${players[idx].name}`);
+                    return;
+                }
+                const val = parseInt(valStr, 10);
+                if (isNaN(val) || val < 0) {
+                    await showAlert('Error de Puntaje', 'Los puntajes deben ser números válidos mayores o iguales a 0.');
+                    return;
+                }
+                if (val === 0) hasZero = true;
+                values.push({ idx, val });
+            }
+
+            // Alerta si nadie tiene 0
+            if (!hasZero) {
+                const confirmSave = await showConfirm(
+                    '¿Guardar Ronda?',
+                    'En el Carioca generalmente alguien debe cortar (0 puntos). ¿Deseas guardar de todas formas?'
+                );
+                if (!confirmSave) return;
+            }
+
+            vibrate(30);
+
+            // Guardar historial para deshacer
+            roundHistory.push(JSON.parse(JSON.stringify(players)));
+            document.getElementById('btn-undo').disabled = false;
+
+            // Aplicar puntajes
+            values.forEach(item => {
+                players[item.idx].scores.push(item.val);
+                players[item.idx].total += item.val;
+            });
+
+            currentRoundIndex++;
+            saveGameState();
+
+            if (currentRoundIndex >= ROUNDS.length) {
+                endGame();
+            } else {
+                initRoundUI();
+            }
+        }
+
+        function undoRound() {
+            if (roundHistory.length === 0) return;
+            vibrate(20);
+            
+            players = roundHistory.pop();
+            currentRoundIndex--;
+
+            if (roundHistory.length === 0) {
+                document.getElementById('btn-undo').disabled = true;
+            }
+            initRoundUI();
+            saveGameState();
+        }
+
+        function renderLeaderboard() {
+            const sorted = [...players].sort((a, b) => a.total - b.total);
+            leaderboardBody.innerHTML = '';
+
+            sorted.forEach((player, index) => {
+                const pos = index + 1;
+                let rankClass = `rank-${pos}`;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="rank ${rankClass}">${pos}°</td>
+                    <td style="font-weight: 600;">${player.name}</td>
+                    <td style="text-align: right; font-weight: 800;">${player.total}</td>
+                `;
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        function renderHistoryTable() {
+            if (players.length === 0) return;
+
+            let html = '<thead><tr><th>Jugador</th>';
+            for (let i = 1; i <= ROUNDS.length; i++) {
+                html += `<th>R${i}</th>`;
+            }
+            html += '</tr></thead><tbody>';
+
+            players.forEach(player => {
+                html += `<tr><td>${player.name}</td>`;
+                for (let i = 0; i < ROUNDS.length; i++) {
+                    const score = player.scores[i] !== undefined ? player.scores[i] : '-';
+                    html += `<td>${score}</td>`;
+                }
+                html += '</tr>';
+            });
+            html += '</tbody>';
+            historyTable.innerHTML = html;
+        }
+
+        async function confirmEndGame() {
+            const confirmEnd = await showConfirm(
+                'Finalizar Juego',
+                '¿Seguro que deseas terminar el juego ahora y ver los resultados finales?'
+            );
+            if (confirmEnd) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            vibrate([50, 100, 50]);
+            releaseWakeLock();
+            clearGameState();
+
+            const sorted = [...players].sort((a, b) => a.total - b.total);
+            podiumContainer.innerHTML = '';
+
+            sorted.forEach((player, index) => {
+                let placeClass = 'normal';
+                let medal = '🪵';
+                let titleText = `${index + 1}° Lugar - ${player.name}`;
+                let subtitleText = 'Puntaje final acumulado';
+                
+                const isWinner = (index === 0);
+                const isLoser = (index === sorted.length - 1 && sorted.length >= 2);
+                
+                if (isWinner) {
+                    placeClass = 'winner';
+                    medal = '👑';
+                    titleText = `🏆 1° Lugar - ¡${player.name}! 🏆`;
+                    subtitleText = '¡EL REY/REINA DE LA MESA! 🎉';
+                } else if (isLoser) {
+                    placeClass = 'loser';
+                    medal = '🤡';
+                    titleText = `🤡 Último Lugar - ${player.name}`;
+                    subtitleText = '<span class="loser-text">🤮 ¡El Seco! Le toca lavar las cartas / pagar las cervezas 🍻</span>';
+                } else if (index === 1) {
+                    placeClass = 'second';
+                    medal = '🥈';
+                    titleText = `🥈 2° Lugar - ${player.name}`;
+                    subtitleText = 'Buen intento, casi logras la gloria';
+                } else if (index === 2) {
+                    placeClass = 'third';
+                    medal = '🥉';
+                    titleText = `🥉 3° Lugar - ${player.name}`;
+                    subtitleText = 'Salvaste el honor en el podio';
+                } else {
+                    placeClass = 'normal';
+                    medal = '🪵';
+                    titleText = `${index + 1}° Lugar - ${player.name}`;
+                    subtitleText = 'Terminó a mitad de tabla';
+                }
+
+                const div = document.createElement('div');
+                div.className = `podium-place ${placeClass}`;
+                div.innerHTML = `
+                    <div class="crown">${medal}</div>
+                    <div style="flex:1; text-align: left;">
+                        <div style="font-weight:bold; font-size:18px;">${titleText}</div>
+                        <div style="font-size:13px; color: var(--text-muted);">${subtitleText}</div>
+                    </div>
+                    <div style="font-size: 24px; font-weight: 800; color: ${isWinner ? 'var(--accent)' : isLoser ? 'var(--danger)' : 'inherit'}">${player.total}</div>
+                `;
+                podiumContainer.appendChild(div);
+            });
+
+            switchView('view-podium');
+        }
+
+        async function resetGame() {
+            const restart = await showConfirm(
+                'Nueva Partida',
+                '¿Quieres iniciar una nueva partida con los mismos jugadores?'
+            );
+            if (restart) {
+                startGame();
+            } else {
+                vibrate(10);
+                players = [];
+                clearGameState();
+                renderPlayerTags();
+                switchView('view-setup');
+            }
+        }
+
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                || (navigator.maxTouchPoints > 0);
+        }
+
+        function onPcScoreInput(idx, inputEl) {
+            const valStr = inputEl.value;
+            if (valStr === "0") {
+                setCorteState(idx);
+            } else {
+                const btn = document.getElementById(`corte-${idx}`);
+                if (btn) btn.classList.remove('active');
+            }
+        }
+
+        // Revisar si hay una partida guardada al cargar la página
+        window.addEventListener('load', () => {
+            if (!isMobileDevice()) {
+                document.body.classList.add('pc-mode');
+            }
+            checkSavedGame();
+        });
+    </script>
+</body>
+
+</html>
