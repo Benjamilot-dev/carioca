@@ -877,7 +877,7 @@
                 <button class="tab-btn active" id="tab-btn-play" onclick="switchSetupTab('play')">🎮 Jugar</button>
                 <button class="tab-btn" id="tab-btn-history" onclick="switchSetupTab('history')">📜 Historial</button>
                 <button class="tab-btn" id="tab-btn-stats" onclick="switchSetupTab('stats')">📊 Estadísticas</button>
-                <button class="tab-btn" id="tab-btn-cloud" onclick="switchSetupTab('cloud')">☁️ Nube</button>
+                <button class="tab-btn" id="tab-btn-cloud" onclick="switchSetupTab('cloud')">📁 Archivo</button>
             </div>
 
             <!-- TAB JUGAR -->
@@ -933,74 +933,29 @@
                 </div>
             </div>
 
-            <!-- TAB NUBE -->
+            <!-- TAB ARCHIVO LOCAL -->
             <div id="setup-tab-cloud" class="setup-tab-content">
-                <div class="card">
-                    <h2>Configuración de Base de Datos</h2>
-                    <div style="display: flex; flex-direction: column; gap: 14px;">
-                        <div>
-                            <label style="font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px; text-align: left;">URL de Google Sheets (CSV)</label>
-                            <input type="text" id="cloud-sheets-url" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" autocomplete="off" inputmode="url">
+                <div class="card" style="text-align: left;">
+                    <h2>Base de Datos Interna</h2>
+                    <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="db-status-badge" style="padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: var(--danger); color: white;">🔴 Local (Memoria)</span>
+                            <span id="db-status-filename" style="font-size: 14px; font-weight: 700; color: var(--text-muted);">database.json</span>
                         </div>
-                        <div>
-                            <label style="font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px; text-align: left;">URL de Google Apps Script (Web App)</label>
-                            <input type="text" id="cloud-script-url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" inputmode="url">
+                        
+                        <div id="server-connected-msg" style="display: none; font-size: 14px; color: var(--success); font-weight: 600; line-height: 1.5;">
+                            ✨ Conectado al servidor local de Node.js. Las partidas y puntajes se guardan automáticamente en tu archivo <code>database.json</code>.
                         </div>
-                        <button class="btn-success" style="width: 100%; min-height: 40px; font-size: 14px;" onclick="saveCloudConfig()">Guardar Configuración</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <h2>Instrucciones de Conexión</h2>
-                    <div style="font-size: 14px; color: var(--text-muted); line-height: 1.6; display: flex; flex-direction: column; gap: 12px; text-align: left;">
-                        <p><strong>1. Publicar Planilla a la Web:</strong> En tu Google Sheet ve a <em>Archivo > Compartir > Publicar en la Web</em>. Selecciona "Valores separados por comas (CSV)" y copia ese link en el primer campo arriba.</p>
-                        <p><strong>2. Configurar Apps Script para Guardar:</strong> Ve a <em>Extensiones > Apps Script</em>, borra todo el código e inserta el siguiente script:</p>
-                        <textarea readonly style="width: 100%; height: 100px; background-color: var(--bg-main); color: var(--text-main); border: 1px solid var(--bg-input); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 11px; outline: none; resize: vertical;" onclick="this.select()">function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["Fecha", "ID Partida", "Jugador", "Puntaje Total", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "Posicion"]);
-    }
-    var lastRow = sheet.getLastRow();
-    var range = sheet.getRange(1, 1, lastRow, 14);
-    var values = range.getValues();
-    data.players.forEach(function(p) {
-      var foundRowIndex = -1;
-      for (var i = 1; i < values.length; i++) {
-        if (values[i][1] == data.gameId && values[i][2] == p.name) {
-          foundRowIndex = i + 1;
-          break;
-        }
-      }
-      var rowData = [
-        data.date, data.gameId, p.name, p.total,
-        p.scores[0] !== undefined ? p.scores[0] : "",
-        p.scores[1] !== undefined ? p.scores[1] : "",
-        p.scores[2] !== undefined ? p.scores[2] : "",
-        p.scores[3] !== undefined ? p.scores[3] : "",
-        p.scores[4] !== undefined ? p.scores[4] : "",
-        p.scores[5] !== undefined ? p.scores[5] : "",
-        p.scores[6] !== undefined ? p.scores[6] : "",
-        p.scores[7] !== undefined ? p.scores[7] : "",
-        p.scores[8] !== undefined ? p.scores[8] : "",
-        p.position
-      ];
-      if (foundRowIndex !== -1) {
-        sheet.getRange(foundRowIndex, 1, 1, 14).setValues([rowData]);
-      } else {
-        sheet.appendRow(rowData);
-      }
-    });
-    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader("Access-Control-Allow-Origin", "*");
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader("Access-Control-Allow-Origin", "*");
-  }
-}</textarea>
-                        <p><strong>3. Desplegar:</strong> Haz clic en <em>Implementar > Nueva Implementación</em>. Selecciona tipo "Aplicación web", configúrala con ejecutar como "Yo" (tu usuario) y acceso para "Cualquiera". Copia el URL obtenido y pégalo en el segundo campo arriba.</p>
+
+                        <div id="server-disconnected-msg" style="font-size: 14px; color: var(--text-muted); line-height: 1.5;">
+                            ⚠️ Estás abriendo el archivo directamente en el navegador. Por restricciones de seguridad, los datos se guardarán temporalmente en la memoria (localStorage).
+                            <br><br>
+                            <strong>Para guardar automáticamente en <code>database.json</code> en segundo plano:</strong>
+                            <ol style="margin-left: 20px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                                <li>Ejecuta el servidor en la terminal de tu proyecto:<br><code style="background: var(--bg-main); padding: 4px 8px; border-radius: 4px; font-family: monospace; display: inline-block; margin-top: 4px; border: 1px solid var(--bg-input);">node server.js</code></li>
+                                <li>Abre el navegador en:<br><a href="http://localhost:3000" target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: underline;">http://localhost:3000</a></li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1056,7 +1011,7 @@
                 <h2>🏆 ¡Fin de la Partida! 🏆</h2>
                 <div class="podium-box" id="podium-container">
                 </div>
-                <button class="btn-primary" id="btn-sync-cloud" style="width: 100%; margin-top: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" onclick="syncGameToCloud()">☁️ Guardar Partida en la Nube</button>
+                <button class="btn-primary" id="btn-sync-cloud" style="width: 100%; margin-top: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" onclick="saveGameToDatabase()">💾 Guardar Partida en Archivo</button>
                 <button class="btn-success" style="width: 100%; margin-top: 12px;" onclick="resetGame()">Jugar de Nuevo</button>
             </div>
         </div>
@@ -1236,10 +1191,9 @@
         let roundHistory = [];
         let wakeLock = null;
 
-        // Variables de base de datos en Google Sheets
-        let cloudSheetsUrl = localStorage.getItem('carioca_cloud_sheets_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdjHyd8zS_36U8yAQFQVfZu4HEpT-u8YZmrFUldLchKEmDrClG7rBOEq35E-criMuo2WVHxCi5NbZb/pub?gid=0&single=true&output=csv';
-        let cloudScriptUrl = localStorage.getItem('carioca_cloud_script_url') || '';
-        let cloudGames = []; // Almacena todas las partidas parseadas
+        // Variables de base de datos local
+        let localFileHandle = null;
+        let databaseGames = []; // Almacena todas las partidas de la base de datos (JSON)
         let hasSyncedThisGame = false;
         let currentLocalGameId = ''; // Generado por partida para evitar duplicaciones
 
@@ -1787,9 +1741,9 @@
                 renderLeaderboard();
                 renderHistoryTable();
 
-                // Si la partida ya fue guardada en la nube, actualizar silenciosamente
+                // Si la partida ya fue guardada en el archivo, actualizar silenciosamente
                 if (hasSyncedThisGame) {
-                    syncGameToCloud(true);
+                    saveGameToDatabase(true);
                 }
             }
         }
@@ -1881,29 +1835,97 @@
                 startGame();
             } else {
                 vibrate(10);
-                players = [];
-                clearGameState();
-                renderPlayerTags();
-                switchView('view-setup');
-            }
-        }
+                p        // --- MANEJO DE BASE DE DATOS LOCAL (REST API / LOCALSTORAGE FALLBACK) ---
+        const isServerMode = window.location.protocol !== 'file:';
 
-        function isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-                || (navigator.maxTouchPoints > 0);
-        }
+        function updateDBStatusUI(connected) {
+            const badge = document.getElementById("db-status-badge");
+            const nameSpan = document.getElementById("db-status-filename");
+            const connectedMsg = document.getElementById("server-connected-msg");
+            const disconnectedMsg = document.getElementById("server-disconnected-msg");
 
-        function onScoreInput(idx, inputEl) {
-            const valStr = inputEl.value;
-            if (valStr === "0") {
-                setCorteState(idx);
+            if (connected && isServerMode) {
+                badge.innerText = "🟢 Servidor Activo";
+                badge.style.backgroundColor = "var(--success)";
+                nameSpan.innerText = "database.json";
+                connectedMsg.style.display = "block";
+                disconnectedMsg.style.display = "none";
             } else {
-                const btn = document.getElementById(`corte-${idx}`);
-                if (btn) btn.classList.remove('active');
+                badge.innerText = "🔴 Local (Memoria)";
+                badge.style.backgroundColor = "var(--danger)";
+                nameSpan.innerText = "database.json";
+                connectedMsg.style.display = "none";
+                disconnectedMsg.style.display = "block";
             }
         }
 
-        // --- FUNCIONES CLOUD / GOOGLE SHEETS ---
+        async function loadFromFile() {
+            if (!isServerMode) {
+                loadFromLocalStorage();
+                return;
+            }
+            try {
+                const res = await fetch('/api/games');
+                if (!res.ok) throw new Error('API server returned error status');
+                databaseGames = await res.json();
+                renderCloudHistory();
+                renderCloudStats();
+                updateDBStatusUI(true);
+            } catch (e) {
+                console.error("Error al leer base de datos del servidor:", e);
+                loadFromLocalStorage();
+                updateDBStatusUI(false);
+            }
+        }
+
+        async function saveToFile() {
+            if (!isServerMode) {
+                saveToLocalStorage();
+                return;
+            }
+            try {
+                const res = await fetch('/api/games', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(databaseGames, null, 2)
+                });
+                if (!res.ok) throw new Error('API server returned error status');
+                updateDBStatusUI(true);
+            } catch (e) {
+                console.error("Error al escribir base de datos en el servidor:", e);
+                showAlert("Error al Guardar", "No se pudo escribir en el servidor local. Se guardó temporalmente en la memoria del navegador.");
+                saveToLocalStorage();
+                updateDBStatusUI(false);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('carioca_local_database');
+            databaseGames = saved ? JSON.parse(saved) : [];
+            renderCloudHistory();
+            renderCloudStats();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('carioca_local_database', JSON.stringify(databaseGames));
+        }
+
+        async function initializeDatabaseOnLoad() {
+            try {
+                if (isServerMode) {
+                    await loadFromFile();
+                } else {
+                    loadFromLocalStorage();
+                    updateDBStatusUI(false);
+                }
+            } catch (e) {
+                console.error("Error al inicializar base de datos:", e);
+                loadFromLocalStorage();
+                updateDBStatusUI(false);
+            }
+        }
+
+        // --- CONTROLADORES DE PESTAÑAS Y VISTAS ---
 
         function switchSetupTab(tabName) {
             vibrate(8);
@@ -1914,172 +1936,37 @@
             document.getElementById(`tab-btn-${tabName}`).classList.add('active');
             
             if (tabName === 'history' || tabName === 'stats') {
-                fetchCloudData();
-            }
-        }
-
-        async function saveCloudConfig() {
-            vibrate(15);
-            const sheetsUrl = document.getElementById('cloud-sheets-url').value.trim();
-            const scriptUrl = document.getElementById('cloud-script-url').value.trim();
-            
-            if (sheetsUrl && !sheetsUrl.startsWith('http')) {
-                await showAlert('URL Inválida', 'La URL de Google Sheets debe comenzar con http o https.');
-                return;
-            }
-            if (scriptUrl && !scriptUrl.startsWith('http')) {
-                await showAlert('URL Inválida', 'La URL de Google Apps Script debe comenzar con http o https.');
-                return;
-            }
-            
-            cloudSheetsUrl = sheetsUrl;
-            cloudScriptUrl = scriptUrl;
-            
-            localStorage.setItem('carioca_cloud_sheets_url', sheetsUrl);
-            localStorage.setItem('carioca_cloud_script_url', scriptUrl);
-            
-            await showAlert('Guardado', 'Configuración de base de datos guardada correctamente.');
-            fetchCloudData();
-        }
-
-        async function fetchCloudData() {
-            if (!cloudSheetsUrl) {
-                renderEmptyCloudState("Configura la URL de Google Sheets en la pestaña 'Nube'.");
-                return;
-            }
-            
-            document.getElementById('cloud-history-loader').style.display = 'flex';
-            document.getElementById('cloud-stats-loader').style.display = 'flex';
-            document.getElementById('cloud-history-container').innerHTML = '';
-            document.getElementById('global-stats-body').innerHTML = '';
-            
-            try {
-                const res = await fetch(cloudSheetsUrl);
-                if (!res.ok) throw new Error('Error al descargar el archivo CSV');
-                const text = await res.text();
-                
-                const rows = parseCSV(text);
-                cloudGames = groupGames(rows);
-                
-                renderCloudHistory();
-                renderCloudStats();
-            } catch (err) {
-                console.error(err);
-                renderEmptyCloudState("Error al conectar con Google Sheets. Verifica la URL en la pestaña 'Nube'.");
-            } finally {
-                document.getElementById('cloud-history-loader').style.display = 'none';
-                document.getElementById('cloud-stats-loader').style.display = 'none';
-            }
-        }
-
-        function renderEmptyCloudState(message) {
-            document.getElementById('cloud-history-container').innerHTML = `
-                <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px;">
-                    ${message}
-                </div>
-            `;
-            document.getElementById('global-stats-body').innerHTML = `
-                <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">${message}</td></tr>
-            `;
-        }
-
-        function parseCSV(text) {
-            const lines = text.split(/\r?\n/);
-            if (lines.length < 2) return [];
-            
-            // Extract headers
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            const result = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                let row = [];
-                let entry = '';
-                let insideQuote = false;
-                
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-                    if (char === '"') {
-                        insideQuote = !insideQuote;
-                    } else if (char === ',' && !insideQuote) {
-                        row.push(entry.trim().replace(/^"|"$/g, ''));
-                        entry = '';
-                    } else {
-                        entry += char;
-                    }
-                }
-                row.push(entry.trim().replace(/^"|"$/g, ''));
-                
-                if (row.length > 0) {
-                    const obj = {};
-                    headers.forEach((h, idx) => {
-                        obj[h] = row[idx] !== undefined ? row[idx] : '';
-                    });
-                    result.push(obj);
+                if (isServerMode) {
+                    loadFromFile();
+                } else {
+                    loadFromLocalStorage();
                 }
             }
-            return result;
-        }
-
-        function groupGames(rows) {
-            const games = {};
-            rows.forEach(row => {
-                const gameId = row['ID Partida'];
-                if (!gameId) return;
-                if (!games[gameId]) {
-                    games[gameId] = {
-                        gameId: gameId,
-                        date: row['Fecha'] || '',
-                        players: []
-                    };
-                }
-                
-                // Parse scores R1 to R9
-                const scores = [];
-                for (let r = 1; r <= 9; r++) {
-                    const val = row[`R${r}`];
-                    if (val !== undefined && val !== '') {
-                        scores.push(parseInt(val, 10));
-                    }
-                }
-                
-                games[gameId].players.push({
-                    name: row['Jugador'] || '',
-                    total: parseInt(row['Puntaje Total'] || '0', 10),
-                    scores: scores,
-                    position: parseInt(row['Posicion'] || '99', 10)
-                });
-            });
-            
-            // Sort players in each game by total score just in case
-            Object.keys(games).forEach(id => {
-                games[id].players.sort((a, b) => a.total - b.total);
-            });
-            
-            return Object.values(games).sort((a, b) => {
-                const tsA = parseInt(a.gameId.replace('game_', ''), 10) || 0;
-                const tsB = parseInt(b.gameId.replace('game_', ''), 10) || 0;
-                return tsB - tsA;
-            });
         }
 
         function renderCloudHistory() {
             const container = document.getElementById('cloud-history-container');
             container.innerHTML = '';
             
-            if (cloudGames.length === 0) {
+            if (databaseGames.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px;">
-                        No hay partidas registradas en la nube. ¡Juega una partida y súbela!
+                        No hay partidas registradas. ¡Juega una partida y guárdala!
                     </div>
                 `;
                 return;
             }
             
-            cloudGames.forEach(game => {
-                const winner = game.players[0]; // sorted by score asc, so 0 is winner
+            // Ordenar por timestamp descendente
+            const sortedGames = [...databaseGames].sort((a, b) => {
+                const tsA = parseInt(a.gameId.replace('game_', ''), 10) || 0;
+                const tsB = parseInt(b.gameId.replace('game_', ''), 10) || 0;
+                return tsB - tsA;
+            });
+
+            sortedGames.forEach(game => {
+                const sortedPlayers = [...game.players].sort((a, b) => a.total - b.total);
+                const winner = sortedPlayers[0];
                 const playerNames = game.players.map(p => p.name).join(', ');
                 
                 const item = document.createElement('div');
@@ -2102,26 +1989,25 @@
 
         function showGameDetail(gameId) {
             vibrate(10);
-            const game = cloudGames.find(g => g.gameId === gameId);
+            const game = databaseGames.find(g => g.gameId === gameId);
             if (!game) return;
 
             document.getElementById('game-detail-date').innerText = `Partida jugada el: ${game.date}`;
             
-            // Render the table header with players
+            // Render table header
             let html = '<thead><tr><th>Ronda</th>';
             game.players.forEach(p => {
                 html += `<th>${p.name}</th>`;
             });
             html += '</tr></thead><tbody>';
 
-            // Find the maximum number of rounds played (usually ROUNDS.length = 9)
             const maxRounds = ROUNDS.length; // 9
             for (let r = 0; r < maxRounds; r++) {
                 html += `<tr><td style="font-weight: bold; background-color: rgba(15, 23, 42, 0.2);">${ROUNDS[r]}</td>`;
                 game.players.forEach((p, playerIdx) => {
                     const score = p.scores[r] !== undefined ? p.scores[r] : '-';
                     if (p.scores[r] !== undefined) {
-                        html += `<td class="history-cell-editable" onclick="editPastCloudScore('${gameId}', ${playerIdx}, ${r})">${score} <span style="font-size:10px; opacity:0.6;">✏️</span></td>`;
+                        html += `<td class="history-cell-editable" onclick="editPastLocalScore('${gameId}', ${playerIdx}, ${r})">${score} <span style="font-size:10px; opacity:0.6;">✏️</span></td>`;
                     } else {
                         html += `<td>${score}</td>`;
                     }
@@ -2129,7 +2015,7 @@
                 html += '</tr>';
             }
 
-            // Add Total row
+            // Total row
             html += `<tr style="border-top: 2px solid var(--bg-input); font-weight: 800; background-color: rgba(99, 102, 241, 0.1);">
                 <td style="font-weight: bold;">TOTAL</td>`;
             game.players.forEach(p => {
@@ -2137,7 +2023,7 @@
             });
             html += '</tr>';
 
-            // Add Rank row
+            // Rank row
             html += `<tr style="font-weight: 800; color: var(--accent);">
                 <td style="font-weight: bold;">Posición</td>`;
             game.players.forEach(p => {
@@ -2155,21 +2041,16 @@
             document.getElementById('modal-game-detail').classList.remove('open');
         }
 
-        async function editPastCloudScore(gameId, playerIdx, roundIdx) {
-            if (!cloudScriptUrl) {
-                await showAlert('Falta Configuración', 'Debes configurar la URL de Google Apps Script en la pestaña "Nube" para editar partidas en la nube.');
-                return;
-            }
-
-            const game = cloudGames.find(g => g.gameId === gameId);
+        async function editPastLocalScore(gameId, playerIdx, roundIdx) {
+            const game = databaseGames.find(g => g.gameId === gameId);
             if (!game) return;
 
             const player = game.players[playerIdx];
             const currentScore = player.scores[roundIdx];
 
             const newScore = await showEditScorePrompt(
-                'Editar Puntaje en Nube',
-                `Modificar puntos de ${player.name} en Ronda ${roundIdx + 1} (${ROUNDS[roundIdx]}) para la partida en la nube`,
+                'Editar Puntaje Guardado',
+                `Modificar puntos de ${player.name} en Ronda ${roundIdx + 1} (${ROUNDS[roundIdx]})`,
                 currentScore
             );
 
@@ -2177,7 +2058,7 @@
                 const originalScore = player.scores[roundIdx];
                 player.scores[roundIdx] = newScore;
 
-                // Validar que no haya más de un 0 (ganador que corte) en esta ronda editada
+                // Validar
                 let zeroCount = 0;
                 game.players.forEach(p => {
                     if (p.scores[roundIdx] === 0) zeroCount++;
@@ -2185,58 +2066,33 @@
 
                 if (zeroCount > 1) {
                     player.scores[roundIdx] = originalScore;
-                    await showAlert('Error de Puntaje', 'Solo puede haber un ganador con 0 puntos (quien cortó) por ronda.');
+                    await showAlert('Error de Puntaje', 'Solo puede haber un ganador con 0 puntos por ronda.');
                     return;
                 }
 
-                // Recalcular total de este jugador
                 player.total = player.scores.reduce((sum, s) => sum + s, 0);
 
-                // Recalcular posiciones del juego
                 const sortedPlayers = [...game.players].sort((a, b) => a.total - b.total);
                 game.players.forEach(p => {
                     p.position = sortedPlayers.findIndex(sp => sp.name === p.name) + 1;
                 });
 
-                // Enviar la partida actualizada a la nube
-                try {
-                    await fetch(cloudScriptUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: {
-                            'Content-Type': 'text/plain'
-                        },
-                        body: JSON.stringify({
-                            date: game.date,
-                            gameId: game.gameId,
-                            players: game.players
-                        })
-                    });
+                // Guardar en archivo/localStorage
+                await saveToFile();
 
-                    // Re-renderizar
-                    showGameDetail(gameId);
-                    renderCloudHistory();
-                    renderCloudStats();
-                    vibrate([30, 50, 30]);
-                    await showAlert('Edición Exitosa', 'El puntaje se ha actualizado directamente en tu Google Sheet.');
-                } catch (err) {
-                    console.error(err);
-                    player.scores[roundIdx] = originalScore;
-                    player.total = player.scores.reduce((sum, s) => sum + s, 0);
-                    // Restaurar posiciones
-                    const restoredSorted = [...game.players].sort((a, b) => a.total - b.total);
-                    game.players.forEach(p => {
-                        p.position = restoredSorted.findIndex(sp => sp.name === p.name) + 1;
-                    });
-                    await showAlert('Error de Conexión', 'No se pudo actualizar el puntaje en la nube. Verifica tu conexión.');
-                }
+                // Re-renderizar
+                showGameDetail(gameId);
+                renderCloudHistory();
+                renderCloudStats();
+                vibrate([30, 50, 30]);
+                await showAlert('Edición Exitosa', 'El puntaje se ha actualizado directamente en la base de datos.');
             }
         }
 
         function renderCloudStats() {
             const playerStats = {};
             
-            cloudGames.forEach(game => {
+            databaseGames.forEach(game => {
                 game.players.forEach(p => {
                     const name = p.name.trim();
                     if (!playerStats[name]) {
@@ -2244,8 +2100,7 @@
                             name: name,
                             gamesPlayed: 0,
                             wins: 0,
-                            totalScore: 0,
-                            scoresList: []
+                            totalScore: 0
                         };
                     }
                     
@@ -2254,7 +2109,6 @@
                         playerStats[name].wins++;
                     }
                     playerStats[name].totalScore += p.total;
-                    playerStats[name].scoresList.push(p.total);
                 });
             });
             
@@ -2268,7 +2122,6 @@
                 };
             });
             
-            // Ordenar por winRate desc, luego gamesPlayed desc, luego avgScore asc
             statsList.sort((a, b) => {
                 if (parseFloat(b.winRate) !== parseFloat(a.winRate)) {
                     return parseFloat(b.winRate) - parseFloat(a.winRate);
@@ -2300,25 +2153,13 @@
             });
         }
 
-        async function syncGameToCloud(isSilent = false) {
+        async function saveGameToDatabase(isSilent = false) {
             if (!isSilent) vibrate(15);
-            if (hasSyncedThisGame && !isSilent) {
-                await showAlert('Ya Sincronizado', 'Esta partida ya fue guardada en la nube.');
-                return;
-            }
-            if (!cloudScriptUrl) {
-                if (!isSilent) {
-                    await showAlert('Falta Configuración', 'Debes configurar la URL de Google Apps Script en la pestaña "Nube" de la pantalla de inicio.');
-                    switchView('view-setup');
-                    switchSetupTab('cloud');
-                }
-                return;
-            }
-
+            
             const syncBtn = document.getElementById('btn-sync-cloud');
             if (syncBtn && !isSilent) {
                 syncBtn.disabled = true;
-                syncBtn.innerText = '☁️ Sincronizando...';
+                syncBtn.innerText = '💾 Guardando...';
             }
 
             const sortedPlayers = [...players].sort((a, b) => a.total - b.total);
@@ -2335,38 +2176,40 @@
             const now = new Date();
             const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            const payload = {
+            const newGameData = {
                 date: dateStr,
                 gameId: currentLocalGameId,
                 players: playerRanks
             };
 
-            try {
-                await fetch(cloudScriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(payload)
-                });
+            // Buscar si ya existe la partida para hacer Upsert
+            const existingIndex = databaseGames.findIndex(g => g.gameId === currentLocalGameId);
+            if (existingIndex !== -1) {
+                databaseGames[existingIndex] = newGameData;
+            } else {
+                databaseGames.push(newGameData);
+            }
 
+            try {
+                await saveToFile();
                 hasSyncedThisGame = true;
+                
                 if (syncBtn) {
                     syncBtn.disabled = true;
-                    syncBtn.innerText = '✓ Sincronizado en la Nube';
+                    syncBtn.innerText = '✓ Guardado en Archivo';
                     syncBtn.style.background = 'linear-gradient(135deg, var(--success), #059669)';
                 }
+                
                 if (!isSilent) {
                     vibrate([30, 50, 30]);
-                    await showAlert('Sincronización Exitosa', 'La partida ha sido guardada en tu Google Sheet.');
+                    await showAlert('Guardado Exitoso', 'La partida se ha registrado en tu base de datos local.');
                 }
             } catch (err) {
                 console.error(err);
                 if (syncBtn && !isSilent) {
                     syncBtn.disabled = false;
-                    syncBtn.innerText = '☁️ Guardar Partida en la Nube';
-                    await showAlert('Error de Conexión', 'No se pudo subir la partida. Verifica tu conexión e inténtalo de nuevo.');
+                    syncBtn.innerText = '💾 Guardar Partida en Archivo';
+                    await showAlert('Error', 'No se pudo escribir en la base de datos.');
                 }
             }
         }
@@ -2376,9 +2219,7 @@
             if (!isMobileDevice()) {
                 document.body.classList.add('pc-mode');
             }
-            // Pre-llenar configuraciones
-            document.getElementById('cloud-sheets-url').value = cloudSheetsUrl;
-            document.getElementById('cloud-script-url').value = cloudScriptUrl;
+            initializeDatabaseOnLoad();
             checkSavedGame();
         });
     </script>
