@@ -1835,7 +1835,29 @@
                 startGame();
             } else {
                 vibrate(10);
-                p        // --- MANEJO DE BASE DE DATOS LOCAL (REST API / LOCALSTORAGE FALLBACK) ---
+                players = [];
+                clearGameState();
+                renderPlayerTags();
+                switchView('view-setup');
+            }
+        }
+
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                || (navigator.maxTouchPoints > 0);
+        }
+
+        function onScoreInput(idx, inputEl) {
+            const valStr = inputEl.value;
+            if (valStr === "0") {
+                setCorteState(idx);
+            } else {
+                const btn = document.getElementById(`corte-${idx}`);
+                if (btn) btn.classList.remove('active');
+            }
+        }
+
+        // --- MANEJO DE BASE DE DATOS LOCAL (REST API / LOCALSTORAGE FALLBACK) ---
         const isServerMode = window.location.protocol !== 'file:';
 
         function updateDBStatusUI(connected) {
