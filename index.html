@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
     <title>Anotador de Carioca Chileno</title>
@@ -1002,7 +1003,19 @@
                 </div>
             </div>
 
-            <button class="btn-danger" style="margin-top: 8px;" onclick="confirmEndGame()">Finalizar Juego Manualmente</button>
+            <!-- CONTROL Y ADMINISTRACIÓN DE PARTIDA -->
+            <div class="card" style="margin-top: 20px;">
+                <h2>Administración de Partida</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; margin-bottom: 12px;">
+                    <button class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px;" onclick="openAddPlayerMidGameModal()">
+                        ➕ Agregar Jugador
+                    </button>
+                    <button class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px;" onclick="confirmResetGameMidGame()">
+                        🔄 Reiniciar Partida
+                    </button>
+                </div>
+                <button class="btn-danger" style="width: 100%; font-weight: 600; padding: 12px;" onclick="confirmEndGame()">🛑 Finalizar Juego Manualmente</button>
+            </div>
         </div>
 
         <!-- VISTA PODIO -->
@@ -1093,6 +1106,39 @@
             <div class="modal-actions">
                 <button class="btn-secondary" id="btn-edit-score-cancel">Cancelar</button>
                 <button class="btn-success" id="btn-edit-score-save">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DIÁLOGO AGREGAR JUGADOR A MITAD DE PARTIDA -->
+    <div class="modal-overlay" id="modal-add-player-mid">
+        <div class="modal-card" style="max-width: 400px;">
+            <h3>Agregar Jugador</h3>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Ingresa el nombre del nuevo jugador que se sumará a la partida:</p>
+            <input type="text" id="add-player-mid-name" class="score-input" placeholder="Nombre" style="margin: 12px auto; display: block; width: 100% !important; text-align: center; box-sizing: border-box;" autocomplete="off">
+            
+            <div id="add-player-mid-score-section" style="margin-top: 16px;">
+                <p style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Puntaje inicial para rondas anteriores:</p>
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%;">
+                        <input type="radio" name="mid-player-score-type" value="zero" checked onclick="toggleCustomScoreInput(false)">
+                        <span>0 puntos (Empezar de cero)</span>
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%;">
+                        <input type="radio" name="mid-player-score-type" value="max" onclick="toggleCustomScoreInput(false)">
+                        <span>Puntos del último lugar (<span id="mid-player-max-score-val">0</span> pts)</span>
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%;">
+                        <input type="radio" name="mid-player-score-type" value="custom" onclick="toggleCustomScoreInput(true)">
+                        <span>Personalizado</span>
+                    </label>
+                </div>
+                <input type="number" id="add-player-mid-score" class="score-input" min="0" placeholder="0" style="margin: 12px auto 0 auto; display: none; width: 120px !important; text-align: center;" inputmode="numeric" pattern="[0-9]*">
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn-secondary" id="btn-add-player-mid-cancel">Cancelar</button>
+                <button class="btn-success" id="btn-add-player-mid-save">Agregar</button>
             </div>
         </div>
     </div>
@@ -1835,11 +1881,55 @@
                 startGame();
             } else {
                 vibrate(10);
-                players = [];
                 clearGameState();
                 renderPlayerTags();
                 switchView('view-setup');
             }
+        }
+
+        async function confirmResetGameMidGame() {
+            const confirmReset = await showConfirm(
+                'Reiniciar Partida',
+                '¿Estás seguro de que deseas reiniciar la partida? Se perderán todos los puntajes acumulados hasta ahora.'
+            );
+            if (confirmReset) {
+                resetGame();
+            }
+        }
+
+        function toggleCustomScoreInput(show) {
+            const input = document.getElementById('add-player-mid-score');
+            if (input) {
+                input.style.display = show ? 'block' : 'none';
+                if (show) {
+                    setTimeout(() => input.focus(), 50);
+                }
+            }
+        }
+
+        function openAddPlayerMidGameModal() {
+            vibrate(15);
+            document.getElementById('add-player-mid-name').value = '';
+            document.getElementById('add-player-mid-score').value = '';
+            
+            const radioZero = document.querySelector('input[name="mid-player-score-type"][value="zero"]');
+            if (radioZero) radioZero.checked = true;
+            toggleCustomScoreInput(false);
+
+            const scoreSection = document.getElementById('add-player-mid-score-section');
+            if (currentRoundIndex === 0) {
+                scoreSection.style.display = 'none';
+            } else {
+                scoreSection.style.display = 'block';
+                const maxScore = Math.max(...players.map(p => p.total), 0);
+                document.getElementById('mid-player-max-score-val').innerText = maxScore;
+            }
+
+            document.getElementById('modal-add-player-mid').classList.add('open');
+
+            setTimeout(() => {
+                document.getElementById('add-player-mid-name').focus();
+            }, 100);
         }
 
         function isMobileDevice() {
@@ -2243,6 +2333,73 @@
             }
             initializeDatabaseOnLoad();
             checkSavedGame();
+
+            // Eventos para agregar jugador a mitad de partida
+            const btnCancel = document.getElementById('btn-add-player-mid-cancel');
+            if (btnCancel) {
+                btnCancel.onclick = function () {
+                    document.getElementById('modal-add-player-mid').classList.remove('open');
+                    vibrate(10);
+                };
+            }
+
+            const btnSave = document.getElementById('btn-add-player-mid-save');
+            if (btnSave) {
+                btnSave.onclick = async function () {
+                    const nameInput = document.getElementById('add-player-mid-name');
+                    const name = nameInput.value.trim();
+                    if (!name) {
+                        await showAlert('Nombre vacío', 'Por favor ingresa un nombre para el jugador.');
+                        return;
+                    }
+
+                    if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                        await showAlert('Jugador Duplicado', 'Este jugador ya existe en la partida.');
+                        return;
+                    }
+
+                    let baseScore = 0;
+                    if (currentRoundIndex > 0) {
+                        const scoreType = document.querySelector('input[name="mid-player-score-type"]:checked').value;
+                        if (scoreType === 'max') {
+                            baseScore = Math.max(...players.map(p => p.total), 0);
+                        } else if (scoreType === 'custom') {
+                            const customVal = parseInt(document.getElementById('add-player-mid-score').value, 10);
+                            if (isNaN(customVal) || customVal < 0) {
+                                await showAlert('Error de Puntaje', 'Por favor ingresa un número de puntos válido mayor o igual a 0.');
+                                return;
+                            }
+                            baseScore = customVal;
+                        }
+                    }
+
+                    // Distribuir puntajes de forma equitativa en las rondas anteriores
+                    const scores = [];
+                    if (currentRoundIndex > 0) {
+                        const avg = Math.floor(baseScore / currentRoundIndex);
+                        for (let i = 0; i < currentRoundIndex - 1; i++) {
+                            scores.push(avg);
+                        }
+                        scores.push(baseScore - (avg * (currentRoundIndex - 1)));
+                    }
+
+                    players.push({
+                        name: name,
+                        scores: scores,
+                        total: baseScore
+                    });
+
+                    document.getElementById('modal-add-player-mid').classList.remove('open');
+                    vibrate(25);
+
+                    initRoundUI();
+                    saveGameState();
+
+                    if (hasSyncedThisGame) {
+                        saveGameToDatabase(true);
+                    }
+                };
+            }
         });
     </script>
 </body>
