@@ -8,6 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%230f172a'/><rect x='6' y='4' width='52' height='56' rx='8' fill='%23ffffff' stroke='%23cbd5e1' stroke-width='2'/><text x='11' y='18' font-family='Arial, sans-serif' font-weight='bold' font-size='13' fill='%230f172a'>A</text><path d='M 32 15 C 29 23 17 28 17 36 C 17 41.5 21.5 44.5 26.5 44.5 C 29.5 44.5 32 42.5 32 42.5 C 32 42.5 34.5 44.5 37.5 44.5 C 42.5 44.5 47 41.5 47 36 C 47 28 35 23 32 15 Z M 32 40 L 27 50 L 37 50 Z' fill='%230f172a'/></svg>">
     <title>Anotador de Carioca Chileno</title>
     <style>
         :root {
@@ -861,6 +862,268 @@
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        /* Scrollbars Personalizados para PC */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+            border: 2px solid #0f172a;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Efectos Hover para Mouse/PC */
+        @media (hover: hover) {
+            button:hover {
+                transform: translateY(-1px);
+                filter: brightness(1.1);
+                box-shadow: var(--shadow-md);
+            }
+            button.btn-secondary:hover {
+                background-color: rgba(255, 255, 255, 0.08);
+                border-color: var(--primary);
+            }
+            .tab-btn:hover:not(.active) {
+                background-color: rgba(255, 255, 255, 0.06);
+                color: var(--text-main);
+            }
+        }
+
+        /* Diseño Adaptativo para Tablets (768px+) */
+        @media (min-width: 768px) {
+            body {
+                padding: 28px 24px;
+            }
+
+            .container {
+                max-width: 720px;
+                gap: 20px;
+            }
+
+            header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: rgba(30, 41, 59, 0.5);
+                backdrop-filter: blur(12px);
+                padding: 16px 24px;
+                border-radius: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            header h1 {
+                font-size: 26px;
+            }
+
+            header p {
+                font-size: 14px;
+                margin-top: 0;
+            }
+
+            .card {
+                padding: 24px 28px;
+                border-radius: 24px;
+                background: rgba(30, 41, 59, 0.7);
+                backdrop-filter: blur(16px);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .round-banner {
+                padding: 22px 28px;
+                border-radius: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                text-align: left;
+            }
+
+            .round-banner .round-number {
+                margin-bottom: 0;
+                font-size: 13px;
+            }
+
+            .round-banner .round-name {
+                font-size: 24px;
+            }
+
+            .scoring-row {
+                padding: 14px 12px;
+                border-radius: 12px;
+                transition: background-color 0.2s ease;
+            }
+
+            .scoring-row:hover {
+                background-color: rgba(255, 255, 255, 0.03);
+            }
+
+            .score-input {
+                width: 90px !important;
+                font-size: 20px !important;
+                padding: 10px !important;
+            }
+
+            .btn-corte {
+                padding: 0 16px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+
+            .table-history th,
+            .table-history td {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+
+            .table-pos th,
+            .table-pos td {
+                padding: 14px 12px;
+                font-size: 15px;
+            }
+
+            .podium-box {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+            }
+
+            .podium-place {
+                padding: 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .podium-place > div {
+                text-align: center;
+            }
+
+            .modal-card {
+                max-width: 520px;
+                padding: 28px;
+                border-radius: 24px;
+            }
+        }
+
+        /* DASHBOARD COMPLETO DE ESCRITORIO / PC (1024px+) */
+        @media (min-width: 1024px) {
+            body {
+                padding: 36px 40px;
+            }
+
+            .container {
+                max-width: 1240px;
+                gap: 24px;
+            }
+
+            /* VISTA DE JUEGO EN MODO DASHBOARD 2 COLUMNAS */
+            #view-game.active {
+                display: grid;
+                grid-template-columns: 460px 1fr;
+                grid-template-rows: auto auto auto;
+                gap: 24px;
+                align-items: start;
+            }
+
+            /* Banner a todo el ancho superior */
+            #view-game > .round-banner {
+                grid-column: 1 / -1;
+                grid-row: 1;
+            }
+
+            /* Columna 1 (Izquierda): Puntajes y Controles */
+            #view-game > .card:nth-of-type(1) { /* Puntajes de la Ronda */
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            #view-game > .nav-buttons { /* Guardar Ronda / Deshacer */
+                grid-column: 1;
+                grid-row: 3;
+            }
+
+            #view-game > .card:nth-of-type(4) { /* Administración de Partida */
+                grid-column: 1;
+                grid-row: 4;
+                margin-top: 0 !important;
+            }
+
+            /* Columna 2 (Derecha): Tabla de Posiciones e Historial en Paralelo */
+            #view-game > .card:nth-of-type(2) { /* Tabla de Posiciones */
+                grid-column: 2;
+                grid-row: 2;
+            }
+
+            #view-game > .card:nth-of-type(3) { /* Historial por Rondas */
+                grid-column: 2;
+                grid-row: 3 / span 2;
+            }
+
+            /* Pestañas de Navegación del Menú */
+            .tabs-container {
+                padding: 8px;
+                background: rgba(30, 41, 59, 0.6);
+                border-radius: 16px;
+                gap: 12px;
+            }
+
+            .tab-btn {
+                padding: 12px 24px;
+                font-size: 15px;
+                font-weight: 700;
+                border-radius: 12px;
+            }
+        }
+
+        /* Estilos para Selección Rápida de Jugadores */
+        .frequent-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .frequent-tag {
+            background-color: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .frequent-tag.selected {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(99, 102, 241, 0.15));
+            border-color: var(--primary);
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .frequent-tag:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+            transform: translateY(-1px);
+        }
+
+        .frequent-tag span.check-icon {
+            font-size: 12px;
+            color: var(--success);
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -889,7 +1152,23 @@
                         <input type="text" id="player-input" placeholder="Nombre del jugador" autocomplete="off" inputmode="text">
                         <button onclick="addPlayer()">Agregar</button>
                     </div>
-                    <div class="player-tag-list" id="player-tags">
+
+                    <!-- SELECCIÓN RÁPIDA DE JUGADORES FRECUENTES/ANTERIORES -->
+                    <div id="frequent-players-container" style="margin-top: 16px; display: none;">
+                        <p style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">
+                            ⭐ Selección rápida (Toca para incluir o quitar):
+                        </p>
+                        <div class="frequent-tag-list" id="frequent-player-tags">
+                            <!-- Se genera dinámicamente -->
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <p style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">
+                            👥 Jugadores en esta partida:
+                        </p>
+                        <div class="player-tag-list" id="player-tags">
+                        </div>
                     </div>
                 </div>
                 <button class="btn-success" style="width: 100%;" onclick="startGame()">Empezar Partida</button>
@@ -966,7 +1245,7 @@
         <div id="view-game" class="view">
             <div class="round-banner">
                 <div class="round-number" id="round-index-display">Ronda 1 de 9</div>
-                <div class="round-name" id="round-name-display">6 - Tres Tríos</div>
+                <div class="round-name" id="round-name-display">6 - Dos Tríos</div>
             </div>
 
             <div class="card">
@@ -1010,11 +1289,16 @@
                     <button class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px;" onclick="openAddPlayerMidGameModal()">
                         ➕ Agregar Jugador
                     </button>
+                    <button class="btn-danger" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px; background: linear-gradient(135deg, #ef4444, #b91c1c);" onclick="openRemovePlayerMidGameModal()">
+                        ➖ Quitar Jugador
+                    </button>
                     <button class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px;" onclick="confirmResetGameMidGame()">
                         🔄 Reiniciar Partida
                     </button>
+                    <button class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px; color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="confirmEndGame()">
+                        🛑 Finalizar Juego
+                    </button>
                 </div>
-                <button class="btn-danger" style="width: 100%; font-weight: 600; padding: 12px;" onclick="confirmEndGame()">🛑 Finalizar Juego Manualmente</button>
             </div>
         </div>
 
@@ -1143,6 +1427,20 @@
         </div>
     </div>
 
+    <!-- DIÁLOGO QUITAR JUGADOR A MITAD DE PARTIDA -->
+    <div class="modal-overlay" id="modal-remove-player-mid">
+        <div class="modal-card" style="max-width: 420px;">
+            <h3>Quitar Jugador de la Partida</h3>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">Selecciona el jugador que deseas retirar de la partida activa:</p>
+            <div id="remove-player-mid-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; margin-bottom: 16px;">
+                <!-- Lista de jugadores con botón de eliminar -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" style="width: 100%;" onclick="closeRemovePlayerMidGameModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DIÁLOGO DETALLE DE PARTIDA HISTÓRICA -->
     <div class="modal-overlay" id="modal-game-detail">
         <div class="modal-card" style="max-width: 450px;">
@@ -1161,7 +1459,7 @@
     <script>
         // Rondas del Carioca Chileno
         const ROUNDS = [
-            "6 - Tres Tríos",
+            "6 - Dos Tríos",
             "7 - Un Trío y Una Escala",
             "8 - Dos Escalas",
             "9 - Tres Tríos",
@@ -1456,20 +1754,135 @@
             vibrate(12);
         }
 
+        function addPlayerByName(name) {
+            if (!name) return;
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) return;
+            players.push({ name: name, scores: [], total: 0 });
+            renderPlayerTags();
+            vibrate(10);
+        }
+
+        function removePlayerByName(name) {
+            const idx = players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+            if (idx !== -1) {
+                players.splice(idx, 1);
+                renderPlayerTags();
+                vibrate(10);
+            }
+        }
+
         function removePlayer(index) {
             vibrate(10);
             players.splice(index, 1);
             renderPlayerTags();
         }
 
+        function getFrequentPlayerNames() {
+            const namesSet = new Set();
+            if (typeof databaseGames !== 'undefined' && Array.isArray(databaseGames)) {
+                databaseGames.forEach(game => {
+                    if (game.players && Array.isArray(game.players)) {
+                        game.players.forEach(p => {
+                            if (p.name) namesSet.add(p.name.trim());
+                        });
+                    }
+                });
+            }
+            return Array.from(namesSet);
+        }
+
+        function renderFrequentPlayers() {
+            const container = document.getElementById('frequent-player-tags');
+            const parentContainer = document.getElementById('frequent-players-container');
+            if (!container || !parentContainer) return;
+
+            const frequentNames = getFrequentPlayerNames();
+            if (frequentNames.length === 0) {
+                parentContainer.style.display = 'none';
+                return;
+            }
+
+            parentContainer.style.display = 'block';
+            container.innerHTML = '';
+
+            frequentNames.forEach(name => {
+                const isSelected = players.some(p => p.name.toLowerCase() === name.toLowerCase());
+                const tag = document.createElement('div');
+                tag.className = `frequent-tag ${isSelected ? 'selected' : ''}`;
+                
+                if (isSelected) {
+                    tag.innerHTML = `<span class="check-icon">✓</span> ${name}`;
+                    tag.title = "Toca para quitar de esta partida";
+                    tag.onclick = () => removePlayerByName(name);
+                } else {
+                    tag.innerHTML = `+ ${name}`;
+                    tag.title = "Toca para agregar a esta partida";
+                    tag.onclick = () => addPlayerByName(name);
+                }
+                
+                container.appendChild(tag);
+            });
+        }
+
         function renderPlayerTags() {
             playerTagsContainer.innerHTML = '';
-            players.forEach((player, index) => {
-                const tag = document.createElement('div');
-                tag.className = 'player-tag';
-                tag.innerHTML = `${player.name} <span onclick="removePlayer(${index})">&times;</span>`;
-                playerTagsContainer.appendChild(tag);
+            if (players.length === 0) {
+                playerTagsContainer.innerHTML = '<span style="font-size: 13px; color: var(--text-muted); font-style: italic;">No hay jugadores agregados aún</span>';
+            } else {
+                players.forEach((player, index) => {
+                    const tag = document.createElement('div');
+                    tag.className = 'player-tag';
+                    tag.innerHTML = `${player.name} <span title="Quitar jugador" onclick="removePlayer(${index})">&times;</span>`;
+                    playerTagsContainer.appendChild(tag);
+                });
+            }
+            renderFrequentPlayers();
+        }
+
+        function openRemovePlayerMidGameModal() {
+            if (players.length <= 2) {
+                showAlert('Atención', 'Deben quedar al menos 2 jugadores en la partida.');
+                return;
+            }
+            const container = document.getElementById('remove-player-mid-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            players.forEach((player, idx) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);';
+                item.innerHTML = `
+                    <span style="font-weight: 700; font-size: 15px;">${player.name} (${player.total} pts)</span>
+                    <button class="btn-danger" style="padding: 6px 14px; min-height: auto; font-size: 13px;" onclick="confirmRemovePlayerMidGame(${idx})">Quitar ❌</button>
+                `;
+                container.appendChild(item);
             });
+            document.getElementById('modal-remove-player-mid').classList.add('open');
+        }
+
+        function closeRemovePlayerMidGameModal() {
+            document.getElementById('modal-remove-player-mid').classList.remove('open');
+        }
+
+        async function confirmRemovePlayerMidGame(idx) {
+            const playerName = players[idx].name;
+            closeRemovePlayerMidGameModal();
+            const confirmed = await showConfirm(
+                '¿Quitar Jugador?',
+                `¿Estás seguro de que deseas retirar a "${playerName}" de la partida actual?`
+            );
+            if (!confirmed) return;
+
+            players.splice(idx, 1);
+            roundHistory.forEach(hState => {
+                if (Array.isArray(hState)) {
+                    hState.splice(idx, 1);
+                }
+            });
+
+            initRoundUI();
+            saveGameState();
+            vibrate([30, 50, 30]);
         }
 
         async function startGame() {
@@ -2057,6 +2470,7 @@
         }
 
         function renderCloudHistory() {
+            renderFrequentPlayers();
             const container = document.getElementById('cloud-history-container');
             container.innerHTML = '';
             
