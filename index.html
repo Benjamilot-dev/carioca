@@ -1124,6 +1124,59 @@
             color: var(--success);
             font-weight: bold;
         }
+
+        /* Configuración de Rondas */
+        .round-config-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 14px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .round-config-item.disabled {
+            opacity: 0.45;
+            background: rgba(15, 23, 42, 0.15);
+        }
+
+        .round-config-item.disabled .round-item-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .round-config-item:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .round-config-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .round-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .remove-round-btn {
+            color: var(--danger);
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .remove-round-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
     </style>
 </head>
 
@@ -1171,7 +1224,8 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn-success" style="width: 100%;" onclick="startGame()">Empezar Partida</button>
+
+                <button class="btn-success" style="width: 100%; font-size: 18px; padding: 16px;" onclick="openPreGameRoundsModal()">Empezar Partida 🎮</button>
             </div>
 
             <!-- TAB HISTORIAL -->
@@ -1286,19 +1340,20 @@
             <div class="card" style="margin-top: 20px;">
                 <h2>Administración de Partida</h2>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; margin-bottom: 12px;">
-                    <button class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px;" onclick="openAddPlayerMidGameModal()">
+                    <button class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; padding: 12px; font-size: 13px;" onclick="openAddPlayerMidGameModal()">
                         ➕ Agregar Jugador
                     </button>
-                    <button class="btn-danger" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px; background: linear-gradient(135deg, #ef4444, #b91c1c);" onclick="openRemovePlayerMidGameModal()">
+                    <button class="btn-danger" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; padding: 12px; font-size: 13px; background: linear-gradient(135deg, #ef4444, #b91c1c);" onclick="openRemovePlayerMidGameModal()">
                         ➖ Quitar Jugador
                     </button>
-                    <button class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px;" onclick="confirmResetGameMidGame()">
+                    <button class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; padding: 12px; font-size: 13px;" onclick="openManageRoundsMidGameModal()">
+                        🎯 Administrar Rondas
+                    </button>
+                    <button class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; padding: 12px; font-size: 13px;" onclick="confirmResetGameMidGame()">
                         🔄 Reiniciar Partida
                     </button>
-                    <button class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px; color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="confirmEndGame()">
-                        🛑 Finalizar Juego
-                    </button>
                 </div>
+                <button class="btn-secondary" style="width: 100%; font-weight: 600; padding: 12px; color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="confirmEndGame()">🛑 Finalizar Juego</button>
             </div>
         </div>
 
@@ -1441,6 +1496,42 @@
         </div>
     </div>
 
+    <!-- DIÁLOGO SELECCIÓN DE RONDAS ANTES DE EMPEZAR -->
+    <div class="modal-overlay" id="modal-rounds-config">
+        <div class="modal-card" style="max-width: 480px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin-bottom: 0;">🎯 Rondas de la Partida</h3>
+                <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px; min-height: auto;" onclick="resetDefaultRounds()">Restablecer (9)</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+                Desmarca o quita (✕) las rondas que NO deseas jugar en esta partida:
+            </p>
+            <div id="rounds-config-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin-bottom: 16px;">
+                <!-- Se genera dinámicamente -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closePreGameRoundsModal()">Cancelar</button>
+                <button class="btn-success" style="flex: 1.5;" onclick="confirmStartGame()">¡Comenzar Partida! (<span id="active-rounds-count">9</span> Rondas)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DIÁLOGO ADMINISTRAR Y RECUPERAR RONDAS EN PARTIDA -->
+    <div class="modal-overlay" id="modal-manage-rounds-mid">
+        <div class="modal-card" style="max-width: 480px;">
+            <h3>🎯 Administrar / Recuperar Rondas</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+                Puedes recuperar rondas que habías dejado afuera o ajustar las rondas futuras de la partida:
+            </p>
+            <div id="manage-rounds-mid-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; margin-bottom: 16px;">
+                <!-- Lista de rondas con botones de agregar/quitar -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" style="width: 100%;" onclick="closeManageRoundsMidGameModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DIÁLOGO DETALLE DE PARTIDA HISTÓRICA -->
     <div class="modal-overlay" id="modal-game-detail">
         <div class="modal-card" style="max-width: 450px;">
@@ -1458,7 +1549,7 @@
 
     <script>
         // Rondas del Carioca Chileno
-        const ROUNDS = [
+        const DEFAULT_ROUNDS = [
             "6 - Dos Tríos",
             "7 - Un Trío y Una Escala",
             "8 - Dos Escalas",
@@ -1469,6 +1560,8 @@
             "13 - Escala Loca",
             "13 - Escala Real"
         ];
+        let activeRoundsList = [...DEFAULT_ROUNDS];
+        let ROUNDS = [...DEFAULT_ROUNDS];
 
         // Mensajes graciosos para el podio
         const WINNER_MESSAGES = [
@@ -1885,11 +1978,183 @@
             vibrate([30, 50, 30]);
         }
 
+        // LÓGICA DE SELECCIÓN Y CONFIGURACIÓN DE RONDAS
+        function renderRoundsConfig() {
+            const container = document.getElementById('rounds-config-list');
+            const countDisplay = document.getElementById('active-rounds-count');
+            if (!container || !countDisplay) return;
+
+            container.innerHTML = '';
+            countDisplay.innerText = activeRoundsList.length;
+
+            DEFAULT_ROUNDS.forEach((roundName) => {
+                const isActive = activeRoundsList.includes(roundName);
+                const item = document.createElement('div');
+                item.className = `round-config-item ${isActive ? '' : 'disabled'}`;
+                item.innerHTML = `
+                    <label style="display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer;">
+                        <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleRoundConfig('${roundName}')">
+                        <span class="round-item-title">${roundName}</span>
+                    </label>
+                    <span class="remove-round-btn" title="Quitar esta ronda" onclick="removeRoundConfig('${roundName}')">&times;</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function toggleRoundConfig(roundName) {
+            const idx = activeRoundsList.indexOf(roundName);
+            if (idx !== -1) {
+                if (activeRoundsList.length <= 1) {
+                    showAlert('Atención', 'Debes dejar al menos 1 ronda para jugar.');
+                    renderRoundsConfig();
+                    return;
+                }
+                activeRoundsList.splice(idx, 1);
+            } else {
+                activeRoundsList.push(roundName);
+                activeRoundsList.sort((a, b) => DEFAULT_ROUNDS.indexOf(a) - DEFAULT_ROUNDS.indexOf(b));
+            }
+            vibrate(10);
+            renderRoundsConfig();
+        }
+
+        function removeRoundConfig(roundName) {
+            const idx = activeRoundsList.indexOf(roundName);
+            if (idx !== -1) {
+                if (activeRoundsList.length <= 1) {
+                    showAlert('Atención', 'Debes dejar al menos 1 ronda para jugar.');
+                    return;
+                }
+                activeRoundsList.splice(idx, 1);
+                vibrate(10);
+                renderRoundsConfig();
+            }
+        }
+
+        function resetDefaultRounds() {
+            activeRoundsList = [...DEFAULT_ROUNDS];
+            vibrate(12);
+            renderRoundsConfig();
+        }
+
+        async function openPreGameRoundsModal() {
+            if (players.length < 2) {
+                await showAlert('Faltan Jugadores', 'Necesitas registrar al menos 2 jugadores para empezar.');
+                return;
+            }
+            renderRoundsConfig();
+            document.getElementById('modal-rounds-config').classList.add('open');
+            vibrate(10);
+        }
+
+        function closePreGameRoundsModal() {
+            document.getElementById('modal-rounds-config').classList.remove('open');
+            vibrate(10);
+        }
+
+        async function confirmStartGame() {
+            if (!activeRoundsList || activeRoundsList.length === 0) {
+                await showAlert('Sin Rondas', 'Debes seleccionar al menos 1 ronda para jugar.');
+                return;
+            }
+            closePreGameRoundsModal();
+            startGame();
+        }
+
+        function openManageRoundsMidGameModal() {
+            const container = document.getElementById('manage-rounds-mid-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            DEFAULT_ROUNDS.forEach((roundName) => {
+                const roundIdxInActive = ROUNDS.indexOf(roundName);
+                const isCurrentlyActive = roundIdxInActive !== -1;
+                const isPlayed = isCurrentlyActive && roundIdxInActive < currentRoundIndex;
+                const isCurrent = isCurrentlyActive && roundIdxInActive === currentRoundIndex;
+
+                const item = document.createElement('div');
+                item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);';
+
+                let statusBadge = '';
+                if (isPlayed) {
+                    statusBadge = `<span style="font-size: 12px; color: var(--success); font-weight: 700;">✓ Jugada</span>`;
+                } else if (isCurrent) {
+                    statusBadge = `<span style="font-size: 12px; color: var(--accent); font-weight: 700;">▶ En Juego</span>`;
+                } else if (isCurrentlyActive) {
+                    statusBadge = `<button class="btn-secondary" style="padding: 4px 10px; font-size: 12px; min-height: auto; color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="removeRoundMidGame('${roundName}')">Quitar ✕</button>`;
+                } else {
+                    statusBadge = `<button class="btn-success" style="padding: 6px 12px; font-size: 13px; min-height: auto;" onclick="addRoundMidGame('${roundName}')">➕ Agregar Ronda</button>`;
+                }
+
+                item.innerHTML = `
+                    <span style="font-weight: 600; font-size: 14px; ${!isCurrentlyActive ? 'opacity: 0.7;' : ''}">${roundName}</span>
+                    <div>${statusBadge}</div>
+                `;
+                container.appendChild(item);
+            });
+
+            document.getElementById('modal-manage-rounds-mid').classList.add('open');
+            vibrate(10);
+        }
+
+        function closeManageRoundsMidGameModal() {
+            document.getElementById('modal-manage-rounds-mid').classList.remove('open');
+        }
+
+        async function addRoundMidGame(roundName) {
+            closeManageRoundsMidGameModal();
+            const confirmed = await showConfirm(
+                '¿Agregar Ronda?',
+                `¿Deseas agregar la ronda "${roundName}" a esta partida?`
+            );
+            if (!confirmed) return;
+
+            // Insertar en la posición natural según DEFAULT_ROUNDS
+            ROUNDS.push(roundName);
+            ROUNDS.sort((a, b) => DEFAULT_ROUNDS.indexOf(a) - DEFAULT_ROUNDS.indexOf(b));
+
+            activeRoundsList = [...ROUNDS];
+
+            initRoundUI();
+            saveGameState();
+            vibrate([30, 50, 30]);
+            await showAlert('Ronda Agregada', `La ronda "${roundName}" ha sido agregada a la partida.`);
+        }
+
+        async function removeRoundMidGame(roundName) {
+            if (ROUNDS.length <= 1) {
+                await showAlert('Atención', 'Deben quedar al menos 1 ronda en la partida.');
+                return;
+            }
+            closeManageRoundsMidGameModal();
+            const confirmed = await showConfirm(
+                '¿Quitar Ronda?',
+                `¿Deseas quitar la ronda futura "${roundName}" de esta partida?`
+            );
+            if (!confirmed) return;
+
+            const idx = ROUNDS.indexOf(roundName);
+            if (idx !== -1) {
+                ROUNDS.splice(idx, 1);
+                activeRoundsList = [...ROUNDS];
+                initRoundUI();
+                saveGameState();
+                vibrate([30, 50, 30]);
+            }
+        }
+
         async function startGame() {
             if (players.length < 2) {
                 await showAlert('Faltan Jugadores', 'Necesitas registrar al menos 2 jugadores para empezar.');
                 return;
             }
+            if (!activeRoundsList || activeRoundsList.length === 0) {
+                await showAlert('Sin Rondas', 'Debes seleccionar al menos 1 ronda para jugar.');
+                return;
+            }
+
+            ROUNDS = [...activeRoundsList];
             currentRoundIndex = 0;
             roundHistory = [];
             players.forEach(p => { p.scores = []; p.total = 0; });
@@ -2746,6 +3011,7 @@
                 document.body.classList.add('pc-mode');
             }
             initializeDatabaseOnLoad();
+            renderRoundsConfig();
             checkSavedGame();
 
             // Eventos para agregar jugador a mitad de partida
